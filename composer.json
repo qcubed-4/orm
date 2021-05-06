@@ -3,7 +3,7 @@
   "description": "Database drivers, query support, and code generator for the object relational model for QCubed-4",
   "keywords": ["php", "database", "orm"],
   "homepage": "https://qcubed.eu/",
-  "type": "library",
+  "type": "qcubed-library",
   "license": "MIT",
   "support": {
       "issues": "https://github.com/qcubed-4/application/issues",
