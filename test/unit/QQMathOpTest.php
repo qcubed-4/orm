@@ -14,7 +14,7 @@ if(!class_exists('TypeTest')){
 
 class QQMathOpTests extends \QCubed\Test\UnitTestCaseBase {
 
-	protected function setUp()
+	protected function setUp() : void
 	{
 		TypeTest::DeleteAll(); // prepare for test in case a test was interrupted and objects did not get deleted
 	}

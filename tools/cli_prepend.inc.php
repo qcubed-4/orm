@@ -1,6 +1,6 @@
 <?php
 
-This needs to be fixed!
+// This needs to be fixed!
 
 
 	// First, let's make sure that path_to_prepend.txt exists

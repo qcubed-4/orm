@@ -10,7 +10,7 @@ if (!defined('SERVER_INSTANCE')) {
 
 	define ('__QC__', dirname(dirname(dirname(__DIR__))));
 	// In the travis test build, the vendor directory is installed inside the application directory
-    define ('QCUBED_BASE_DIR',  dirname(dirname(__DIR__)) . '/vendor/qcubed');
+    define ('QCUBED_BASE_DIR',  dirname(dirname(__DIR__)) . '/vendor/qcubed-4');
 
     // for travis build only, we point to the project directory inside the install directory
 	define ('QCUBED_PROJECT_DIR', dirname(dirname(__DIR__)) . '/install/project');

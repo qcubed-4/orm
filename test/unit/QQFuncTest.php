@@ -13,7 +13,7 @@ if(!class_exists('TypeTest')){
 }
 
 class QQFuncTests extends \QCubed\Test\UnitTestCaseBase {
-	protected function setUp()
+	protected function setUp() : void
 	{
 		TypeTest::DeleteAll();
 	}
