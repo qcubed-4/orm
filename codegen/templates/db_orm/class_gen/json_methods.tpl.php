@@ -5,7 +5,7 @@
 
     // this function is required for objects that implement the
     // IteratorAggregate interface
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         $iArray = array();
 
@@ -52,7 +52,7 @@
      *
      * @return array An array that is json serializable
      */
-    public function jsonSerialize ()
+    public function jsonSerialize(): mixed
     {
         $a = [];
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>

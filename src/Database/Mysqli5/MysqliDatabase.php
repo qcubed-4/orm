@@ -9,9 +9,12 @@
 
 namespace QCubed\Database\Mysqli5;
 
+
+use QCubed\Database;
 use QCubed\Database\DatabaseBase;
 use QCubed\Database\ForeignKey;
 use QCubed\Database\Index;
+use QCubed\Database\Service as DatabaseService;
 use QCubed\Exception\Caller;
 use QCubed\QString;
 use QCubed\Type;
@@ -97,6 +100,8 @@ class MysqliDatabase extends DatabaseBase
         );
         $this->executeNonQuery($strSql);
     }
+
+
 
     public function connect()
     {
