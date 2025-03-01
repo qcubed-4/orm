@@ -31,7 +31,7 @@ abstract class Table extends NodeBase
      * @param null|string $strType If it has a parent, the type of the column in the parent that is the fk to this node. (Likely Integer).
      * @param NodeBase|null $objParentNode
      */
-    public function __construct($strName, $strPropertyName = null, $strType = null, NodeBase $objParentNode = null)
+    public function __construct($strName, $strPropertyName = null, $strType = null, ?NodeBase $objParentNode = null)
     {
         $this->objParentNode = $objParentNode;
         $this->strName = $strName;
@@ -64,8 +64,8 @@ abstract class Table extends NodeBase
     public function join(
         Builder $objBuilder,
         $blnExpandSelection = false,
-        iCondition $objJoinCondition = null,
-        Clause\Select $objSelect = null
+        ?iCondition $objJoinCondition = null,
+        ?Clause\Select $objSelect = null
     ) {
         $objParentNode = $this->objParentNode;
         if (!$objParentNode) {

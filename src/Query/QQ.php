@@ -245,7 +245,7 @@ class QQ
         return new Node\SubQuerySql($strSql, $objParentQueryNodeArray);
     }
 
-    static public function virtual($strName, Node\SubQueryBase $objSubQueryDefinition = null)
+    static public function virtual($strName, ?Node\SubQueryBase $objSubQueryDefinition = null)
     {
         return new Node\Virtual($strName, $objSubQueryDefinition);
     }
@@ -329,8 +329,8 @@ class QQ
 
     static public function expand(
         Node\NodeBase $objNode,
-        iCondition $objJoinCondition = null,
-        Clause\Select $objSelect = null
+        ?iCondition $objJoinCondition = null,
+        ?Clause\Select $objSelect = null
     ) {
 //			if (gettype($objNode) == 'string')
 //				return new Clause\ExpandVirtualNode(new Node\Virtual($objNode));
@@ -345,7 +345,7 @@ class QQ
     static public function expandAsArray(
         Node\NodeBase $objNode,
         $objCondition = null,
-        Clause\Select $objSelect = null
+        ?Clause\Select $objSelect = null
     ) {
         return new Clause\ExpandAsArray($objNode, $objCondition, $objSelect);
     }

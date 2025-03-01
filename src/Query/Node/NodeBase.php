@@ -73,8 +73,8 @@ abstract class NodeBase extends ObjectBase
     abstract public function join(
         Builder $objBuilder,
         $blnExpandSelection = false,
-        iCondition $objJoinCondition = null,
-        Select $objSelect = null
+        ?iCondition $objJoinCondition = null,
+        ?Select $objSelect = null
     );
 
     /**

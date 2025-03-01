@@ -28,16 +28,15 @@
      * @return mixed Either a <?= $objTable->ClassName ?>, or false to indicate the dbrow was used in an expansion, or null to indicate that this leaf is a duplicate.
     */
     public static function instantiateDbRow(
-        \QCubed\Database\RowBase $objDbRow,
-        $strAliasPrefix = null,
-        Node\NodeBase $objExpandAsArrayNode = null,
-        $objPreviousItemArray = null,
-        $strColumnAliasArray = array(),
-        $blnCheckDuplicate = false,
-        $strParentExpansionKey = null,
-        $objExpansionParent = null
+    \QCubed\Database\RowBase $objDbRow,
+    ?string $strAliasPrefix = null,
+    ?Node\NodeBase $objExpandAsArrayNode = null,
+    ?array $objPreviousItemArray = null,
+    array $strColumnAliasArray = [],
+    bool $blnCheckDuplicate = false,
+    ?string $strParentExpansionKey = null,
+    mixed $objExpansionParent = null
     ) {
-
         // If blank row, return null
         if (!$objDbRow) {
             return null;
@@ -253,7 +252,7 @@ if (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ) {
      * @param string[] $strColumnAliasArray
      * @return <?= $objTable->ClassName ?>[]
      */
-    public static function instantiateDbResult(\QCubed\Database\ResultBase $objDbResult, Node\NodeBase $objExpandAsArrayNode = null, $strColumnAliasArray = null)
+    public static function instantiateDbResult(\QCubed\Database\ResultBase $objDbResult, ?Node\NodeBase $objExpandAsArrayNode = null, ?array $strColumnAliasArray = null)
     {
         $objToReturn = array();
 

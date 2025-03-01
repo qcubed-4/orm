@@ -174,7 +174,7 @@ class Builder extends ObjectBase
         $strTableName,
         $strColumnName,
         $strLinkedColumnName,
-        iCondition $objJoinCondition = null
+        ?iCondition $objJoinCondition = null
     ) {
         $strJoinItem = sprintf('LEFT JOIN %s%s%s AS %s%s%s ON %s%s%s.%s%s%s = %s%s%s.%s%s%s',
             $this->strEscapeIdentifierBegin, $strJoinTableName, $this->strEscapeIdentifierEnd,

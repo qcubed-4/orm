@@ -50,8 +50,8 @@ class Association extends NodeBase
     public function join(
         Builder $objBuilder,
         $blnExpandSelection = false,
-        iCondition $objJoinCondition = null,
-        Clause\Select $objSelect = null
+        ?iCondition $objJoinCondition = null,
+        ?Clause\Select $objSelect = null
     ) {
         $objParentNode = $this->objParentNode;
         $objParentNode->join($objBuilder, $blnExpandSelection, null, $objSelect);

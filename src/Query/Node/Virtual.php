@@ -28,7 +28,7 @@ class Virtual extends NoParentBase
      * @param $strName
      * @param SubQueryBase|null $objSubQueryDefinition
      */
-    public function __construct($strName, SubQueryBase $objSubQueryDefinition = null)
+    public function __construct($strName, ?SubQueryBase $objSubQueryDefinition = null)
     {
         parent::__construct('', '', '');
         $this->objParentNode = true;

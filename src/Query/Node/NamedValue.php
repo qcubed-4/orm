@@ -57,8 +57,8 @@ class NamedValue extends NodeBase
     public function join(
         Builder $objBuilder,
         $blnExpandSelection = false,
-        iCondition $objJoinCondition = null,
-        Clause\Select $objSelect = null
+        ?iCondition $objJoinCondition = null,
+        ?Clause\Select $objSelect = null
     ) {
         assert(0);    // This kind of node is never a parent.
     }

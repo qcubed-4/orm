@@ -28,7 +28,7 @@ class Expand extends ObjectBase implements ClauseInterface
     protected $objJoinCondition;
     protected $objSelect;
 
-    public function __construct($objNode, iCondition $objJoinCondition = null, Select $objSelect = null)
+    public function __construct($objNode, ?iCondition $objJoinCondition = null, ?Select $objSelect = null)
     {
         // Check against root and table QQNodes
         if ($objNode instanceof Node\Association) {

@@ -53,7 +53,7 @@ class Select extends ObjectBase implements ClauseInterface
         }
     }
 
-    public function merge(Select $objSelect = null)
+    public function merge(?Select $objSelect = null)
     {
         if ($objSelect) {
             foreach ($objSelect->arrNodeObj as $objNode) {

@@ -26,7 +26,7 @@
     }
 
 <?php if (count($objTable->PrimaryKeyColumnArray) == 1) { ?>
-    public static function queryPrimaryKeys(iCondition $objConditions = null)
+    public static function queryPrimaryKeys(?iCondition $objConditions = null)
     {
         if ($objConditions === null) {
             $objConditions = QQ::All();

@@ -29,7 +29,7 @@ class Column extends NodeBase
      * @param string $strType
      * @param NodeBase|null $objParentNode
      */
-    public function __construct($strName, $strPropertyName, $strType, NodeBase $objParentNode = null)
+    public function __construct($strName, $strPropertyName, $strType, ?NodeBase $objParentNode = null)
     {
         $this->objParentNode = $objParentNode;
         $this->strName = $strName;
@@ -96,8 +96,8 @@ class Column extends NodeBase
     public function join(
         Builder $objBuilder,
         $blnExpandSelection = false,
-        iCondition $objJoinCondition = null,
-        Clause\Select $objSelect = null
+        ?iCondition $objJoinCondition = null,
+        ?Clause\Select $objSelect = null
     ) {
         $objParentNode = $this->objParentNode;
         if (!$objParentNode) {

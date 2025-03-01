@@ -34,7 +34,7 @@ class ExpandAsArray extends ObjectBase implements ClauseInterface
      * @param Select|null $objSelect
      * @throws Caller
      */
-    public function __construct(Node\NodeBase $objNode, $objCondition = null, Select $objSelect = null)
+    public function __construct(Node\NodeBase $objNode, $objCondition = null, ?Select $objSelect = null)
     {
         // For backwards compatibility with v2, which did not have a condition parameter, we will detect what the 2nd param is.
         // Ensure that this is an Association
