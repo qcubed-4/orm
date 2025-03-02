@@ -20,7 +20,7 @@ use QCubed\Database\FieldType;
  */
 class MysqliField extends FieldBase
 {
-    public function __construct($mixFieldData, MysqliDatabase $objDb = null)
+    public function __construct($mixFieldData, ?MysqliDatabase $objDb = null)
     {
         $this->strName = $mixFieldData->name;
         $this->strOriginalName = $mixFieldData->orgname;
@@ -152,7 +152,7 @@ class MysqliField extends FieldBase
             case MYSQLI_TYPE_CHAR:
                 $this->strType = FieldType::CHAR;
                 break;
-            case MYSQLI_TYPE_INTERVAL:
+            case defined('MYSQLI_TYPE_INTERVAL') ? MYSQLI_TYPE_INTERVAL : -1:
                 throw new \Exception("QCubed MySqliDatabase library: MYSQLI_TYPE_INTERVAL is not supported");
                 break;
             case MYSQLI_TYPE_NULL:
