@@ -39,8 +39,7 @@
 			'port' => null,
 			'database' => 'qcubed',
 			'username' => 'root',
-			//	'profiling' => true,
-			'profiling' => false,
+			'encoding' => 'utf8mb4', // utf8
 			'password' => '12345'
 		)));*/
 /*
@@ -50,8 +49,7 @@
 			'port' => null,
 			'database' => 'qcubed',
 			'username' => 'root',
-			//	'profiling' => true,
-			'profiling' => false,
+			'encoding' => 'utf8mb4', // utf8
 			'password' => '12345'
 		)));*/
 
