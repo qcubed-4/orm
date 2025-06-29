@@ -10,6 +10,8 @@
 namespace QCubed\Codegen;
 
 use QCubed\Exception\Caller;
+use Exception;
+use QCubed\Exception\UndefinedProperty;
 use QCubed\ObjectBase;
 use QCubed\Type;
 
@@ -44,45 +46,45 @@ class ReverseReference extends ObjectBase implements ColumnInterface
      * The peer QReference object for which this object is the reverse reference of
      * @var Reference KeyName
      */
-    protected $objReference;
+    protected Reference $objReference;
 
     /**
-     * Name of the foreign key object itself, as defined in the database or create script
+     * Name of the foreign key object itself, as defined in the database or create a script
      * @var string KeyName
      */
-    protected $strKeyName;
+    protected string $strKeyName;
 
     /**
      * Name of the referencing table (the table that owns the column that is the foreign key)
      * @var string Table
      */
-    protected $strTable;
+    protected string $strTable;
 
     /**
      * Name of the referencing column (the column that owns the foreign key)
      * @var string Column
      */
-    protected $strColumn;
+    protected string $strColumn;
 
     /**
      * Specifies whether the referencing column is specified as "NOT NULL"
      * @var bool NotNull
      */
-    protected $blnNotNull;
+    protected bool $blnNotNull;
 
     /**
      * Specifies whether the referencing column is unique
      * @var bool Unique
      */
-    protected $blnUnique;
+    protected bool $blnUnique;
 
     /**
-     * Name of the reverse-referenced object as an function parameter.
+     * Name of the reverse-referenced object as a function parameter.
      * So if this is a reverse reference to "person" via "report.person_id",
      * the VariableName would be "objReport"
      * @var string VariableName
      */
-    protected $strVariableName;
+    protected string $strVariableName;
 
     /**
      * Type of the reverse-referenced object as a class.
@@ -90,7 +92,7 @@ class ReverseReference extends ObjectBase implements ColumnInterface
      * the VariableName would be "Report"
      * @var string VariableType
      */
-    protected $strVariableType;
+    protected string $strVariableType;
 
     /**
      * Property Name of the referencing column (the column that owns the foreign key)
@@ -98,41 +100,41 @@ class ReverseReference extends ObjectBase implements ColumnInterface
      * via the table/column "report.owner_person_id", the PropertyName would be "OwnerPersonId"
      * @var string PropertyName
      */
-    protected $strPropertyName;
+    protected string $strPropertyName;
 
     /**
      * Singular object description used in the function names for the
      * reverse reference.  See documentation for more details.
      * @var string ObjectDescription
      */
-    protected $strObjectDescription;
+    protected string $strObjectDescription;
 
     /**
      * Plural object description used in the function names for the
      * reverse reference.  See documentation for more details.
      * @var string ObjectDescriptionPlural
      */
-    protected $strObjectDescriptionPlural;
+    protected string $strObjectDescriptionPlural;
 
     /**
      * A member variable name to be used by classes that contain the local member variable
      * for this unique reverse reference.  Only aggregated when blnUnique is true.
      * @var string ObjectMemberVariable
      */
-    protected $strObjectMemberVariable;
+    protected string $strObjectMemberVariable;
 
     /**
      * A property name to be used by classes that contain the property
      * for this unique reverse reference.  Only aggregated when blnUnique is true.
      * @var string ObjectPropertyName
      */
-    protected $strObjectPropertyName;
+    protected string $strObjectPropertyName;
 
     /**
-     * Keyed array of overrides read from the override file
+     * A keyed array of overrides read from the override file
      * @var array Overrides
      */
-    protected $options;
+    protected array $options = [];
 
 
     ////////////////////
@@ -140,14 +142,14 @@ class ReverseReference extends ObjectBase implements ColumnInterface
     ////////////////////
 
     /**
-     * Override method to perform a property "Get"
-     * This will get the value of $strName
+     * Magic getter method to retrieve the value of a property based on its name.
      *
-     * @param string $strName Name of the property to get
-     * @throws Caller
+     * @param string $strName The name of the property to retrieve.
      * @return mixed
+     * @throws Caller If the property does not exist or cannot be accessed.
+     * @throws UndefinedProperty
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'Reference':
@@ -191,47 +193,62 @@ class ReverseReference extends ObjectBase implements ColumnInterface
 
     /**
      * Override method to perform a property "Set"
-     * This will set the property $strName to be $mixValue
+     * This will set the value of $strName to $mixValue
      *
      * @param string $strName Name of the property to set
-     * @param string $mixValue New value of the property
+     * @param mixed $mixValue The value to assign to the property
+     * @return void
      * @throws Caller
-     * @return mixed
+     * @throws Exception
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         try {
             switch ($strName) {
                 case 'Reference':
-                    return $this->objReference = Type::cast($mixValue, Reference::class);
+                    $this->objReference = Type::cast($mixValue, Reference::class);
+                    break;
                 case 'KeyName':
-                    return $this->strKeyName = Type::cast($mixValue, Type::STRING);
+                    $this->strKeyName = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'Table':
-                    return $this->strTable = Type::cast($mixValue, Type::STRING);
+                    $this->strTable = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'Column':
-                    return $this->strColumn = Type::cast($mixValue, Type::STRING);
+                    $this->strColumn = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'NotNull':
-                    return $this->blnNotNull = Type::cast($mixValue, Type::BOOLEAN);
+                    $this->blnNotNull = Type::cast($mixValue, Type::BOOLEAN);
+                    break;
                 case 'Unique':
-                    return $this->blnUnique = Type::cast($mixValue, Type::BOOLEAN);
+                    $this->blnUnique = Type::cast($mixValue, Type::BOOLEAN);
+                    break;
                 case 'VariableName':
-                    return $this->strVariableName = Type::cast($mixValue, Type::STRING);
+                    $this->strVariableName = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'VariableType':
-                    return $this->strVariableType = Type::cast($mixValue, Type::STRING);
+                    $this->strVariableType = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'PropertyName':
-                    return $this->strPropertyName = Type::cast($mixValue, Type::STRING);
+                    $this->strPropertyName = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'ObjectDescription':
-                    return $this->strObjectDescription = Type::cast($mixValue, Type::STRING);
+                    $this->strObjectDescription = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'ObjectDescriptionPlural':
-                    return $this->strObjectDescriptionPlural = Type::cast($mixValue, Type::STRING);
+                    $this->strObjectDescriptionPlural = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'ObjectMemberVariable':
-                    return $this->strObjectMemberVariable = Type::cast($mixValue, Type::STRING);
+                    $this->strObjectMemberVariable = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'ObjectPropertyName':
-                    return $this->strObjectPropertyName = Type::cast($mixValue, Type::STRING);
+                    $this->strObjectPropertyName = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'Options':
-                    return $this->options = Type::cast($mixValue, Type::ARRAY_TYPE);
+                    $this->options = Type::cast($mixValue, Type::ARRAY_TYPE);
+                    break;
                 default:
-                    return parent::__set($strName, $mixValue);
+                    parent::__set($strName, $mixValue);
             }
         } catch (Caller $objExc) {
             $objExc->incrementOffset();

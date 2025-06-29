@@ -9,6 +9,7 @@
 
 namespace QCubed\Database;
 
+use QCubed\Database\Mysqli5\MysqliResult;
 use QCubed\Exception\Caller;
 use QCubed\Exception\InvalidCast;
 use QCubed\ObjectBase;
@@ -19,16 +20,16 @@ use QCubed\Type;
 
 /**
  * Every database adapter must implement the following 5 classes (all of which are abstract):
- * * DatabaseBase
- * * DatabaseFieldBase
- * * DatabaseResultBase
- * * DatabaseRowBase
- * * DatabaseExceptionBase
+ * DatabaseBase
+ * DatabaseFieldBase
+ * DatabaseResultBase
+ * DatabaseRowBase
+ * DatabaseExceptionBase
  * This Database library also has the following classes already defined, and
  * Database adapters are assumed to use them internally:
- * * DatabaseIndex
- * * DatabaseForeignKey
- * * DatabaseFieldType (which is an abstract class that solely contains constants)
+ * DatabaseIndex
+ * DatabaseForeignKey
+ * DatabaseFieldType (which is an abstract class that solely contains constants)
  *
  * @property-read string $EscapeIdentifierBegin
  * @property-read string $EscapeIdentifierEnd
@@ -45,13 +46,12 @@ use QCubed\Type;
  * @property-read string $Host
  * @property-read string $Username
  * @property-read string $Password
- * @property boolean $Caching         if true objects loaded from this database will be kept in cache (assuming a cache provider is also configured)
+ * @property boolean $Caching         if true objects loaded from this database are kept in a cache (assuming a cache provider is also configured)
  * @property-read string $DateFormat
- * @property-read boolean $OnlyFullGroupBy database adapter sub-classes can override and set this property to true
+ * @property-read boolean $OnlyFullGroupBy database adapter subclasses can override and set this property to true
  *          to prevent the behavior of automatically adding all the columns to the select clause when the query has
  *          an aggregation clause.
  * @package DatabaseAdapters
- * @was QDatabaseBase
  */
 abstract class DatabaseBase extends ObjectBase
 {
@@ -61,49 +61,53 @@ abstract class DatabaseBase extends ObjectBase
 
     // Protected Member Variables for ALL Database Adapters
     /** @var int Database Index according to the configuration file */
-    protected $intDatabaseIndex;
+    protected int $intDatabaseIndex;
     /** @var bool Has the profiling been enabled? */
-    protected $blnEnableProfiling;
-    protected $strProfileArray;
+    protected bool $blnEnableProfiling;
+    protected array $strProfileArray;
 
-    protected $objConfigArray;
-    protected $blnConnectedFlag = false;
+    protected array $objConfigArray;
+    protected bool $blnConnectedFlag = false;
 
-    /** @var string The beginning part of characters which can escape identifiers in a SQL query for the database */
-    protected $strEscapeIdentifierBegin = '"';
-    /** @var string The ending part of characters which can escape identifiers in a SQL query for the database */
-    protected $strEscapeIdentifierEnd = '"';
-    protected $blnOnlyFullGroupBy = false; // should be set in sub-classes as appropriate
+    /** @var string The beginning part of characters which can escape identifiers in an SQL query for the database */
+    protected string $strEscapeIdentifierBegin = '"';
+    /** @var string The final part of characters that can be used instead of identifiers in a database SQL query */
+    protected string $strEscapeIdentifierEnd = '"';
+    protected bool $blnOnlyFullGroupBy = false; // should be set in subclasses as appropriate
 
     /**
      * @var int The transaction depth value.
-     * It is incremented on a transaction begin,
-     * decremented on a transaction commit, and reset to zero on a roll back.
+     * It is incremented on a transaction beginning,
+     * decremented on a transaction commit, and reset to zero on a rollback.
      * It is used to implement the recursive transaction functionality.
      */
-    protected $intTransactionDepth = 0;
+    protected int $intTransactionDepth = 0;
 
     // Abstract Methods that ALL Database Adapters MUST implement
 
     /**
-     * Connects to the database
+     * Establishes a connection to a data source.
+     *
+     * This method must be implemented by any subclass to define
+     * the process of establishing a connection specific to the data source.
+     *
+     * @return void
      */
-    abstract public function connect();
+    abstract public function connect(): void;
     // these are protected - externally, the "Query/NonQuery" wrappers are meant to be called
 
     /**
-     * Sends a SQL query for execution to the database
-     * In this regard, a query is a 'SELECT' statement
+     * Executes the provided query string and returns the result.
      *
-     * @param string $strQuery The Query to be executed
+     * @param string $strQuery The SQL query to be executed.
      *
-     * @return mixed Result that the database returns after running the query.
+     * @return mixed The result of the query execution.
      */
-    abstract protected function executeQuery($strQuery);
+    abstract protected function executeQuery(string $strQuery): MysqliResult;
 
     /**
-     * Sends a non-SELECT query (such as INSERT, UPDATE, DELETE, TRUNCATE) to DB server.
-     * In most cases, the results of this function are not used and you should not send
+     * Sends a non-SELECT query (such as INSERT, UPDATE, DELETE, TRUNCATE) to the DB server.
+     * In most cases, the results of this function are not used, and you should not send
      * 'SELECT' queries using this method because a result is not guaranteed to be returned
      *
      * If there was an error, it would most probably be caught as an exception.
@@ -112,24 +116,24 @@ abstract class DatabaseBase extends ObjectBase
      *
      * @return mixed Result that the database returns after running the query
      */
-    abstract protected function executeNonQuery($strNonQuery);
+    abstract protected function executeNonQuery(string $strNonQuery): MysqliResult;
 
     /**
      * Returns the list of tables in the database (as string)
      *
      * @return mixed|string[] List of tables
      */
-    abstract public function getTables();
+    abstract public function getTables(): mixed;
 
     /**
      * Returns the ID to be inserted in a table column (normally it an autoincrement column)
      *
-     * @param null|string $strTableName Table name where the ID has to be inserted
-     * @param null|string $strColumnName Column name where the ID has to be inserted
+     * @param string|null $strTableName Table name where the ID has to be inserted
+     * @param string|null $strColumnName Column name where the ID has to be inserted
      *
      * @return mixed
      */
-    abstract public function insertId($strTableName = null, $strColumnName = null);
+    abstract public function insertId(?string $strTableName = null, ?string $strColumnName = null): mixed;
 
     /**
      * Get the list of columns/fields for a given table
@@ -138,59 +142,59 @@ abstract class DatabaseBase extends ObjectBase
      *
      * @return mixed
      */
-    abstract public function getFieldsForTable($strTableName);
+    abstract public function getFieldsForTable(string $strTableName): mixed;
 
     /**
-     * Get list of indexes for a table
+     * Get a list of indexes for a table
      *
-     * @param string $strTableName Name of table whose column indexes we have to get
+     * @param string $strTableName Name of the table whose column indexes we have to get
      *
      * @return mixed
      */
-    abstract public function getIndexesForTable($strTableName);
+    abstract public function getIndexesForTable(string $strTableName): mixed;
 
     /**
-     * Get list of foreign keys for a table
+     * Get a list of foreign keys for a table
      *
-     * @param string $strTableName Name of table whose foreign keys we are trying to get
+     * @param string $strTableName Name of the table whose foreign keys we are trying to get
      *
      * @return mixed
      */
-    abstract public function getForeignKeysForTable($strTableName);
+    abstract public function getForeignKeysForTable(string $strTableName): mixed;
 
     /**
      * This function actually begins the database transaction.
      * Must be implemented in all subclasses.
-     * The "TransactionBegin" wrapper are meant to be called by end-user code
+     * The "TransactionBegin" wrapper is meant to be called by end-user code
      *
      * @return void Nothing
      */
-    abstract protected function executeTransactionBegin();
+    abstract protected function executeTransactionBegin(): void;
 
     /**
      * This function actually commits the database transaction.
      * Must be implemented in all subclasses.
-     * The "TransactionCommit" wrapper are meant to be called by end-user code
+     * The "TransactionCommit" wrapper is meant to be called by end-user code
      * @return void Nothing
      */
-    abstract protected function executeTransactionCommit();
+    abstract protected function executeTransactionCommit(): void;
 
     /**
      * This function actually rolls back the database transaction.
      * Must be implemented in all subclasses.
-     * The "TransactionRollBack" wrapper are meant to be called by end-user code
+     * The "TransactionRollBack" wrapper is meant to be called by end-user code
      *
      * @return void Nothing
      */
-    abstract protected function executeTransactionRollBack();
+    abstract protected function executeTransactionRollBack(): void;
 
     /**
-     * Template for executing stored procedures. Optional, for those database drivers that support it.
+     * Template for executing stored procedures. Optional for those database drivers that support it.
      * @param string $strProcName
      * @param array|null $params
-     * @return mixed
+     * @return null
      */
-    public function executeProcedure($strProcName, $params = null)
+    public function executeProcedure(string $strProcName, ?array $params = null): null
     {
         return null;
     }
@@ -200,7 +204,7 @@ abstract class DatabaseBase extends ObjectBase
      *
      * @return void Nothing
      */
-    public final function transactionBegin()
+    public final function transactionBegin(): void
     {
         if (0 == $this->intTransactionDepth) {
             $this->executeTransactionBegin();
@@ -214,13 +218,13 @@ abstract class DatabaseBase extends ObjectBase
      * @throws Caller
      * @return void Nothing
      */
-    public final function transactionCommit()
+    public final function transactionCommit(): void
     {
         if (1 == $this->intTransactionDepth) {
             $this->executeTransactionCommit();
         }
         if ($this->intTransactionDepth <= 0) {
-            throw new Caller("The transaction commit call is called before the transaction begin was called.");
+            throw new Caller("The transaction commit call is called before the transaction beginning was called.");
         }
         $this->intTransactionDepth--;
     }
@@ -230,46 +234,69 @@ abstract class DatabaseBase extends ObjectBase
      *
      * @return void Nothing
      */
-    public final function transactionRollBack()
+    public final function transactionRollBack(): void
     {
         $this->executeTransactionRollBack();
         $this->intTransactionDepth = 0;
     }
 
-    abstract public function sqlLimitVariablePrefix($strLimitInfo);
-
-    abstract public function sqlLimitVariableSuffix($strLimitInfo);
-
-    abstract public function sqlSortByVariable($strSortByInfo);
+    /**
+     * Prepares and returns the prefix syntax for limiting SQL query results.
+     *
+     * @param string $strLimitInfo Information related to the SQL limit clause
+     *
+     * @return string|null Prepared prefix string for the SQL limit clause
+     */
+    abstract public function sqlLimitVariablePrefix(string $strLimitInfo): ?string;
 
     /**
-     * Closes the database connection
+     * Appends or modifies the SQL query string with the limit clause based on the provided limit information.
+     *
+     * @param string $strLimitInfo Limit clause information to be appended or modified in the SQL query.
+     *
+     * @return string|null Returns the modified SQL query string with the limit clause or null if no modification is applied.
+     */
+    abstract public function sqlLimitVariableSuffix(string $strLimitInfo): string|null;
+
+    /**
+     * Sort database query results based on the provided sort information.
+     *
+     * @param string $strSortByInfo Sorting information used to order query results.
      *
      * @return mixed
      */
-    abstract public function close();
+    abstract public function sqlSortByVariable(string $strSortByInfo): mixed;
 
     /**
-     * Given an identifier for a SQL query, this method returns the escaped identifier
+     * Closes the current connection or resource.
      *
-     * @param string $strIdentifier Identifier to be escaped
+     * This method is responsible for terminating any active connections
+     * and releasing associated resources to ensure proper cleanup.
      *
-     * @return string Escaped identifier string
+     * @return void
      */
-    public function escapeIdentifier($strIdentifier)
+    abstract public function close(): void;
+
+    /**
+     * Escapes a database identifier (e.g., table or column name) to ensure it is properly quoted.
+     *
+     * @param string $strIdentifier The identifier to be escaped.
+     *
+     * @return string The escaped identifier.
+     */
+    public function escapeIdentifier(string $strIdentifier): string
     {
         return $this->strEscapeIdentifierBegin . $strIdentifier . $this->strEscapeIdentifierEnd;
     }
 
     /**
-     * Given an array of identifiers, this method returns array of escaped identifiers
-     * For corner case handling, if a single identifier is supplied, a single escaped identifier is returned
+     * Escapes database identifiers to prevent SQL injection or syntax errors.
      *
-     * @param array|string $mixIdentifiers Array of escaped identifiers (array) or one unescaped identifier (string)
+     * @param array|string $mixIdentifiers Single identifier or an array of identifiers to be escaped
      *
-     * @return array|string Array of escaped identifiers (array) or one escaped identifier (string)
+     * @return string|array Escaped identifier(s)
      */
-    public function escapeIdentifiers($mixIdentifiers)
+    public function escapeIdentifiers(array|string $mixIdentifiers): array|string
     {
         if (is_array($mixIdentifiers)) {
             return array_map(array($this, 'EscapeIdentifier'), $mixIdentifiers);
@@ -279,13 +306,14 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * Escapes values (or single value) which we can then send to the database
+     * Escapes single or multiple values for safe inclusion in SQL queries.
      *
-     * @param array|mixed $mixValues Array of values (or a single value) to be escaped
+     * @param mixed $mixValues A single value or an array of values to be escaped
      *
-     * @return array|string Array of (or a single) escaped value(s)
+     * @return string|array Escaped value(s); returns a single escaped value if input is not an array,
+     *               or an array of escaped values if input is an array
      */
-    public function escapeValues($mixValues)
+    public function escapeValues(mixed $mixValues): string|array
     {
         if (is_array($mixValues)) {
             return array_map(array($this, 'SqlVariable'), $mixValues);
@@ -295,13 +323,14 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * Escapes both column and values when supplied as an array
+     * Escapes column identifiers and their corresponding values for use in a SQL query.
      *
-     * @param array $mixColumnsAndValuesArray Array with column=>value format with both (column and value) sides unescaped
+     * @param array $mixColumnsAndValuesArray An associative array where the keys are column identifiers
+     *                                        and the values are the associated data to be escaped.
      *
-     * @return array Array with column=>value format data with both column and value escaped
+     * @return array An associative array with column identifiers and values properly escaped for safe use in an SQL query.
      */
-    public function escapeIdentifiersAndValues($mixColumnsAndValuesArray)
+    public function escapeIdentifiersAndValues(array $mixColumnsAndValuesArray): array
     {
         $result = array();
         foreach ($mixColumnsAndValuesArray as $strColumn => $mixValue) {
@@ -311,14 +340,17 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * INSERTs or UPDATEs a table
+     * Inserts a new record or updates an existing record in the specified table based on the primary key match condition.
      *
-     * @param string $strTable Table name
-     * @param array $mixColumnsAndValuesArray column=>value array
-     *                                                    (they are given to 'EscapeIdentifiersAndValues' method)
-     * @param null|string|array $strPKNames Name(s) of primary key column(s) (expressed as string or array)
+     * @param string $strTable The name of the table where the operation will be performed.
+     * @param array $mixColumnsAndValuesArray An associative array of column names and their corresponding values for the operation.
+     * @param array|string|null $strPKNames The primary key column(s) used to match records for the update operation.
+     *                                      It can be a single column name, an array of column names, or null to default
+     *                                      to the first column in $mixColumnsAndValuesArray.
+     *
+     * @return void
      */
-    public function insertOrUpdate($strTable, $mixColumnsAndValuesArray, $strPKNames = null)
+    public function insertOrUpdate(string $strTable, array $mixColumnsAndValuesArray, mixed $strPKNames = null): void
     {
         $strEscapedArray = $this->escapeIdentifiersAndValues($mixColumnsAndValuesArray);
         $strColumns = array_keys($strEscapedArray);
@@ -345,7 +377,7 @@ abstract class DatabaseBase extends ObjectBase
             }
         }
         $strTable = $this->EscapeIdentifierBegin . $strTable . $this->EscapeIdentifierEnd;
-        $strSql = sprintf('MERGE INTO %s AS target_ USING %s AS source_ ON %s WHEN MATCHED THEN UPDATE SET %s WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)',
+        $strSql = sprintf('MERGE INTO %s AS target_ USING %s AS a source_ ON %s WHEN MATCHED THEN UPDATE SET %s WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)',
             $strTable, $strTable,
             $strMatchCondition, $strUpdateStatement,
             implode(', ', $strColumns),
@@ -355,13 +387,13 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * Sends the 'SELECT' query to the database and returns the result
+     * Executes a database query and handles profiling if enabled.
      *
-     * @param string $strQuery query string
-     *
-     * @return ResultBase
+     * @param string $strQuery The SQL query to execute.
+     * @return mixed The result of the query execution.
+     * @throws Caller
      */
-    public final function query($strQuery)
+    public final function query(string $strQuery): mixed
     {
         $timerName = null;
         if (!$this->blnConnectedFlag) {
@@ -388,13 +420,13 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * This is basically the same as 'Query' but is used when SQL statements other than 'SELECT'
-     * @param string $strNonQuery The SQL to be sent
+     * Executes a database non-query operation and handles profiling if enabled.
      *
-     * @return mixed
+     * @param string $strNonQuery The SQL non-query statement to execute.
+     * @return mixed The result of the non-query execution.
      * @throws Caller
      */
-    public final function nonQuery($strNonQuery)
+    public final function nonQuery(string $strNonQuery): mixed
     {
         if (!$this->blnConnectedFlag) {
             $this->connect();
@@ -419,13 +451,13 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * PHP magic method
-     * @param string $strName Property name
+     * Magic method to retrieve the value of a property dynamically.
      *
-     * @return mixed
-     * @throws \Exception|Caller
+     * @param string $strName The name of the property to retrieve.
+     * @return mixed The value of the specified property.
+     * @throws Caller Thrown when the property is not defined or inaccessible.
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'EscapeIdentifierBegin':
@@ -471,14 +503,14 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * PHP magic method to set class properties
-     * @param string $strName Property name
-     * @param string $mixValue Property value
+     * Sets the value of a property, handling specific cases or delegating to the parent implementation.
      *
-     * @return mixed|void
-     * @throws \Exception|Caller
+     * @param string $strName The name of the property to set.
+     * @param mixed $mixValue The value to assign to the property.
+     * @return void
+     * @throws Caller If the parent::__set method throws an exception.
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         switch ($strName) {
             case 'Caching':
@@ -496,17 +528,14 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * Constructs a Database Adapter based on the database index and the configuration array of properties
-     * for this particular adapter. Sets up the base-level configuration properties for this database,
-     * namely DB Profiling and Database Index
+     * Initializes a database connection object with the specified configuration.
      *
-     * @param integer $intDatabaseIndex
-     * @param string[] $objConfigArray configuration array as passed in to the constructor
-     *                                 by QApplicationBase::initializeDatabaseConnections();
-     *
-     * @throws \Exception|Caller|InvalidCast
+     * @param int $intDatabaseIndex The index of the database to initialize.
+     * @param array $objConfigArray An array of configuration settings for the database connection.
+     * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct($intDatabaseIndex, $objConfigArray)
+    public function __construct(int $intDatabaseIndex, array $objConfigArray)
     {
         // Setup DatabaseIndex
         $this->intDatabaseIndex = $intDatabaseIndex;
@@ -522,11 +551,11 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * Allows for the enabling of DB profiling while in middle of the script
+     * Enables profiling for tracking and analyzing the execution of operations.
      *
      * @return void
      */
-    public function enableProfiling()
+    public function enableProfiling(): void
     {
         // Only perform profiling initialization if profiling is not yet enabled
         if (!$this->blnEnableProfiling) {
@@ -536,20 +565,20 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * If EnableProfiling is on, then log the query to the profile array
+     * Logs query profiling information including backtrace and execution time.
      *
-     * @param string $strQuery
-     * @param double $dblQueryTime query execution time in milliseconds
+     * @param string $strQuery The SQL query that was executed.
+     * @param float $dblQueryTime The time taken to execute the query, in seconds.
      * @return void
      */
-    private function logQuery($strQuery, $dblQueryTime)
+    private function logQuery(string $strQuery, float $dblQueryTime): void
     {
         if ($this->blnEnableProfiling) {
             // Dereference-ize Backtrace Information
             $objDebugBacktrace = debug_backtrace();
 
             // get rid of unnecessary backtrace info in case of:
-            // query
+            // a query
             if ((count($objDebugBacktrace) > 3) &&
                 (array_key_exists('function', $objDebugBacktrace[2])) &&
                 (($objDebugBacktrace[2]['function'] == 'QueryArray') ||
@@ -558,16 +587,10 @@ abstract class DatabaseBase extends ObjectBase
             ) {
                 $objBacktrace = $objDebugBacktrace[3];
             } else {
-                if (isset($objDebugBacktrace[2])) // non query
-                {
-                    $objBacktrace = $objDebugBacktrace[2];
-                } else // ad hoc query
-                {
-                    $objBacktrace = $objDebugBacktrace[1];
-                }
+                $objBacktrace = $objDebugBacktrace[2] ?? $objDebugBacktrace[1];
             }
 
-            // get rid of reference to current object in backtrace array
+            // get rid of reference to the current object in a backtrace array
             if (isset($objBacktrace['object'])) {
                 $objBacktrace['object'] = null;
             }
@@ -604,24 +627,21 @@ abstract class DatabaseBase extends ObjectBase
                 'dblTimeInfo' => $dblQueryTime
             );
 
-            array_push($this->strProfileArray, $arrProfile);
+            $this->strProfileArray[] = $arrProfile;
         }
     }
 
     /**
-     * Properly escapes $mixData to be used as a SQL query parameter.
-     * If IncludeEquality is set (usually not), then include an equality operator.
-     * So for most data, it would just be "=".  But, for example,
-     * if $mixData is NULL, then most RDBMS's require the use of "IS".
+     * Converts a given value into an SQL-safe representation (string, numeric, boolean, date, array, etc.) with optional handling of equality expressions.
      *
-     * @param mixed $mixData
-     * @param boolean $blnIncludeEquality whether or not to include an equality operator
-     * @param boolean $blnReverseEquality whether the included equality operator should be a "NOT EQUAL", e.g. "!="
-     * @return string the properly formatted SQL variable
+     * @param mixed $mixData The data to be converted into an SQL variable. Accepts various types, including strings, numbers, booleans, dates, arrays, or null.
+     * @param bool $blnIncludeEquality Whether to include an equality operator (=, =, IS, IS NOT) in the SQL representation.
+     * @param bool $blnReverseEquality Whether to reverse the equality operator (!=, IS NOT instead of =, IS).
+     * @return string The SQL-safe representation of the input value, ready for inclusion in an SQL query.
      */
-    public function sqlVariable($mixData, $blnIncludeEquality = false, $blnReverseEquality = false)
+    public function sqlVariable(mixed $mixData, bool $blnIncludeEquality = false, bool $blnReverseEquality = false): string
     {
-        // Are we SqlVariabling a BOOLEAN value?
+        // Are we SqlRivalling a BOOLEAN value?
         if (is_bool($mixData)) {
             // Yes
             if ($blnIncludeEquality) {
@@ -697,7 +717,6 @@ abstract class DatabaseBase extends ObjectBase
 
         // Check for DATE Value
         if ($mixData instanceof QDateTime) {
-            /** @var QDateTime $mixData */
             if ($mixData->isTimeNull()) {
                 if ($mixData->isDateNull()) {
                     return $strToReturn . 'NULL'; // null date and time is a null value
@@ -709,7 +728,7 @@ abstract class DatabaseBase extends ObjectBase
             return $strToReturn . sprintf("'%s'", $mixData->qFormat(QDateTime::FORMAT_ISO));
         }
 
-        // an array. Assume we are using it in an array context, like an IN clause
+        // An array. Assume we are using it in an array context, like an IN clause
         if (is_array($mixData)) {
             $items = [];
             foreach ($mixData as $item) {
@@ -722,13 +741,21 @@ abstract class DatabaseBase extends ObjectBase
         return $strToReturn . sprintf("'%s'", addslashes($mixData));
     }
 
-    public function prepareStatement($strQuery, $mixParameterArray)
+    /**
+     * Prepares an SQL statement by replacing placeholders in the query with the provided parameters.
+     *
+     * @param string $strQuery The SQL query containing placeholders to be replaced.
+     * @param array $mixParameterArray An associative array where keys correspond to the placeholders in the query,
+     *                                  and values are the corresponding replacement values.
+     * @return string The prepared SQL query with placeholders replaced by their respective values.
+     */
+    public function prepareStatement(string $strQuery, array $mixParameterArray): string
     {
         foreach ($mixParameterArray as $strKey => $mixValue) {
             if (is_array($mixValue)) {
                 $strParameters = array();
                 foreach ($mixValue as $mixParameter) {
-                    array_push($strParameters, $this->sqlVariable($mixParameter));
+                    $strParameters[] = $this->sqlVariable($mixParameter);
                 }
                 $strQuery = str_replace(chr(QCubed::NAMED_VALUE_DELIMITER) . '{' . $strKey . '}',
                     implode(',', $strParameters) . ')', $strQuery);
@@ -746,16 +773,17 @@ abstract class DatabaseBase extends ObjectBase
     }
 
     /**
-     * Displays the OutputProfiling results, plus a link which will popup the details of the profiling.
+     * Outputs profiling information for the database connection if profiling is enabled.
+     * Generates either an HTML snippet displaying the profiling information or outputs it directly.
      *
-     * @param bool $blnPrintOutput
-     * @return null|string
+     * @param bool $blnPrintOutput Determines whether to directly output the profiling information (true)
+     *                             or return it as a string (false).
+     * @return string|null Returns the profiling information as a string if $blnPrintOutput is false,
+     *                     otherwise, returns null after directly outputting the profiling information.
      */
-    public function outputProfiling($blnPrintOutput = true)
+    public function outputProfiling(bool $blnPrintOutput = true): ?string
     {
-        $strPath = isset($_SERVER['REQUEST_URI']) ?
-            $_SERVER['REQUEST_URI'] :
-            $_SERVER['PHP_SELF'];
+        $strPath = $_SERVER['REQUEST_URI'] ?? $_SERVER['PHP_SELF'];
 
         $strOut = '<div class="qDbProfile">';
         if ($this->blnEnableProfiling) {
@@ -797,34 +825,34 @@ abstract class DatabaseBase extends ObjectBase
 
     /**
      * Executes the explain statement for a given query and returns the output without any transformation.
-     * If the database adapter does not support EXPLAIN statements, returns null.
+     * If the database adapter does not support EXPLAIN statements, it returns null.
      *
-     * @param $strSql
+     * @param string $strSql
      *
-     * @return null
+     * @return MysqliResult|null
      */
-    public function explainStatement($strSql)
+    public function explainStatement(string $strSql): ?MysqliResult
     {
         return null;
     }
 
 
     /**
-     * Utility function to extract the json embedded options structure from the comments.
+     * Utility function to extract the JSON embedded options structure from the comments.
      *
      * Usage:
      * <code>
-     *    list($strComment, $options) = Base::extractCommentOptions($strComment);
+     *    list($strComment, $options) = DatabaseBase::extractCommentOptions($strComment);
      * </code>
      *
      * @param string $strComment The comment to analyze
-     * @return array A two item array, with first item the comment with the options removed, and 2nd item the options array.
+     * @return array A two-item array, with the first item the comment with the options removed, and the 2nd item the options array.
      *
      */
-    public static function extractCommentOptions($strComment)
+    public static function extractCommentOptions(string $strComment): array
     {
         $ret[0] = null; // comment string without options
-        $ret[1] = null; // the options array
+        $ret[1] = null; // the option array
         if (($strComment) &&
             ($pos1 = strpos($strComment, '{')) !== false &&
             ($pos2 = strrpos($strComment, '}', $pos1))

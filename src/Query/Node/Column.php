@@ -11,6 +11,7 @@ namespace QCubed\Query\Node;
 
 use QCubed\Exception\Caller;
 use QCubed\Query\Builder;
+use QCubed\Query\Clause\Select;
 use QCubed\Query\Condition\ConditionInterface as iCondition;
 use QCubed\Query\Clause;
 
@@ -18,7 +19,6 @@ use QCubed\Query\Clause;
  * Class Column
  * A node that represents a column in a table.
  * @package QCubed\Query\Condition
- * @was QQColumnNode
  */
 class Column extends NodeBase
 {
@@ -29,7 +29,7 @@ class Column extends NodeBase
      * @param string $strType
      * @param NodeBase|null $objParentNode
      */
-    public function __construct($strName, $strPropertyName, $strType, ?NodeBase $objParentNode = null)
+    public function __construct(string $strName, string $strPropertyName, string $strType, ?NodeBase $objParentNode = null)
     {
         $this->objParentNode = $objParentNode;
         $this->strName = $strName;
@@ -50,22 +50,24 @@ class Column extends NodeBase
     /**
      * @param Builder $objBuilder
      * @return string
+     * @throws Caller
      */
-    public function getColumnAlias(Builder $objBuilder)
+    public function getColumnAlias(Builder $objBuilder): string
     {
         $this->join($objBuilder);
         $strParentAlias = $this->objParentNode->fullAlias();
         $strTableAlias = $objBuilder->getTableAlias($strParentAlias);
-        // Pull the Begin and End Escape Identifiers from the Database Adapter
+        // Pull the Beginning and End Escape Identifiers from the Database Adapter
         return $this->makeColumnAlias($objBuilder, $strTableAlias);
     }
 
     /**
-     * @param Builder $objBuilder
-     * @param $strTableAlias
-     * @return string
+     * Generates an alias for a column by combining the table alias and column name.
+     * @param Builder $objBuilder Instance of the query builder containing database escape characters.
+     * @param string $strTableAlias Alias of the table to be prefixed with the column name.
+     * @return string The fully qualified alias for the column.
      */
-    public function makeColumnAlias(Builder $objBuilder, $strTableAlias)
+    public function makeColumnAlias(Builder $objBuilder, string $strTableAlias): string
     {
         $strBegin = $objBuilder->Database->EscapeIdentifierBegin;
         $strEnd = $objBuilder->Database->EscapeIdentifierEnd;
@@ -75,11 +77,10 @@ class Column extends NodeBase
             $strBegin, $this->strName, $strEnd);
     }
 
-
     /**
-     * @return string
+     * @return string|null
      */
-    public function getTable()
+    public function getTable(): ?string
     {
         return $this->objParentNode->fullAlias();
     }
@@ -90,15 +91,17 @@ class Column extends NodeBase
      * @param Builder $objBuilder
      * @param bool $blnExpandSelection
      * @param iCondition|null $objJoinCondition
-     * @param Clause\Select|null $objSelect
+     * @param Select|null $objSelect
+     * @return Column
      * @throws Caller
      */
     public function join(
-        Builder $objBuilder,
-        $blnExpandSelection = false,
-        ?iCondition $objJoinCondition = null,
+        Builder        $objBuilder,
+        ?bool           $blnExpandSelection = false,
+        ?iCondition    $objJoinCondition = null,
         ?Clause\Select $objSelect = null
-    ) {
+    ): static
+    {
         $objParentNode = $this->objParentNode;
         if (!$objParentNode) {
             throw new Caller('A column node must have a parent node.');
@@ -106,13 +109,15 @@ class Column extends NodeBase
             // Here we pass the join condition on to the parent object
             $objParentNode->join($objBuilder, $blnExpandSelection, $objJoinCondition, $objSelect);
         }
+
+        return $this;
     }
 
     /**
      * Get the unaliased column name. For special situations, like order by, since you can't order by aliases.
      * @return string
      */
-    public function getAsManualSqlColumn()
+    public function getAsManualSqlColumn(): string
     {
         if ($this->strTableName) {
             return $this->strTableName . '.' . $this->strName;

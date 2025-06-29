@@ -10,28 +10,32 @@
 namespace QCubed\Query\Condition;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
 use QCubed\Query\Node;
+use QCubed\Query\Node\Column;
 
 /**
  * Class Between
  * Represent a test for an item being between two values.
- * Note that different SQLs treat this clause differently, and may produce different results. Its not transportable.
+ * Note that different SQLs treat this clause differently and may produce different results. It's not transportable.
  * @package QCubed\Query\Condition
- * @was QQConditionBetween
  */
 class Between extends ComparisonBase
 {
     /** @var  mixed */
-    protected $mixOperandTwo;
+    protected mixed $mixOperandTwo;
 
     /**
-     * @param Node\Column $objQueryNode
-     * @param mixed|null $mixMinValue
-     * @param $mixMaxValue
+     * Constructor for the class.
+     *
+     * @param Column $objQueryNode The query node object.
+     * @param mixed $mixMinValue The minimum value to be set for the operand.
+     * @param mixed $mixMaxValue The maximum value to be set for the operand.
      * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $mixMinValue, $mixMaxValue)
+    public function __construct(Node\Column $objQueryNode, mixed $mixMinValue, mixed $mixMaxValue)
     {
         parent::__construct($objQueryNode);
         try {
@@ -45,9 +49,13 @@ class Between extends ComparisonBase
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the query builder with a "BETWEEN" clause based on the provided operands.
+     *
+     * @param Builder $objBuilder The query builder being updated.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $mixOperand = $this->mixOperand;
         $mixOperandTwo = $this->mixOperandTwo;

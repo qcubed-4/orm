@@ -11,20 +11,21 @@ namespace QCubed\Query\Node;
 
 use QCubed\Exception\Caller;
 use QCubed\Query\Builder;
+use QCubed\Query\Clause\Select;
 use QCubed\Query\Condition\ConditionInterface as iCondition;
 use QCubed\Query\Clause;
+use Exception;
 
 /**
  * Class Association
  * Describes a many-to-many relationship in the database that uses an association table to link two other tables together.
  * @package QCubed\Query\Node
- * @was QQAssociationNode
  */
 class Association extends NodeBase
 {
     /**
      * @param NodeBase $objParentNode
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(NodeBase $objParentNode)
     {
@@ -34,25 +35,27 @@ class Association extends NodeBase
             $this->strAlias = $this->strName;
             $objParentNode->objChildNodeArray[$this->strAlias] = $this;
         } else {
-            throw new \Exception ("Association Nodes must always have a parent node");
+            throw new Exception ("Association Nodes must always have a parent node");
         }
     }
 
     /**
-     * Join the node to the query. Join condition here gets applied to parent item.
+     * Join the node to the query. Join condition here gets applied to the parent item.
      *
      * @param Builder $objBuilder
      * @param bool $blnExpandSelection
      * @param iCondition|null $objJoinCondition
-     * @param Clause\Select|null $objSelect
+     * @param Select|null $objSelect
+     * @return mixed
      * @throws Caller
      */
     public function join(
-        Builder $objBuilder,
-        $blnExpandSelection = false,
-        ?iCondition $objJoinCondition = null,
+        Builder        $objBuilder,
+        ?bool           $blnExpandSelection = false,
+        ?iCondition    $objJoinCondition = null,
         ?Clause\Select $objSelect = null
-    ) {
+    ): static
+    {
         $objParentNode = $this->objParentNode;
         $objParentNode->join($objBuilder, $blnExpandSelection, null, $objSelect);
         if ($objJoinCondition && !$objJoinCondition->equalTables($this->fullAlias())) {
@@ -73,6 +76,8 @@ class Association extends NodeBase
             $objExc->incrementOffset();
             throw $objExc;
         }
+
+        return $this;
     }
 }
 

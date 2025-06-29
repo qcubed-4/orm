@@ -20,24 +20,24 @@ use QCubed\Query\Node;
  * Class OrderBy
  * Sort clause
  * @package QCubed\Query\Clause
- * @was QQOrderBy
  */
 class OrderBy extends ObjectBase implements ClauseInterface
 {
-    /** @var mixed[] */
-    protected $objNodeArray;
+    /** @var array */
+    protected array $objNodeArray;
 
     /**
-     * CollapseNodes makes sure a node list is vetted, and turned into a node list.
-     * This also allows table nodes to be used in certain column node contexts, in which it will
-     * substitute the primary key node in this situation.
+     * Processes and collapses a mixed array of parameters into a structured array of nodes and conditions.
+     * Validates that all parameters are of type Node\NodeBase or iCondition with optional ascending/descending order
+     * indicators, and re-structures the nodes for proper handling.
      *
-     * @param $mixParameterArray
-     * @return array
-     * @throws Caller
-     * @throws InvalidCast
+     * @param array $mixParameterArray A mixed array of parameters which may include Node\NodeBase objects,
+     *                                  iCondition objects, or optional true/false ascending order indicators.
+     * @return array An array of structured nodes or conditions for further processing.
+     * @throws Caller If the parameters are not valid Node\NodeBase or iCondition objects, or if invalid order indicators are used.
+     * @throws InvalidCast If a Node\NodeBase parameter cannot be associated with a parent table or has no primary key.
      */
-    protected function collapseNodes($mixParameterArray)
+    protected function collapseNodes(array $mixParameterArray): array
     {
         /** @var Node\NodeBase[] $objNodeArray */
         $objNodeArray = array();
@@ -45,7 +45,7 @@ class OrderBy extends ObjectBase implements ClauseInterface
             if (is_array($mixParameter)) {
                 $objNodeArray = array_merge($objNodeArray, $mixParameter);
             } else {
-                array_push($objNodeArray, $mixParameter);
+                $objNodeArray[] = $mixParameter;
             }
         }
 
@@ -58,19 +58,19 @@ class OrderBy extends ObjectBase implements ClauseInterface
                         3);
                 }
                 $blnPreviousIsNode = false;
-                array_push($objFinalNodeArray, $objNode);
+                $objFinalNodeArray[] = $objNode;
             } elseif ($objNode instanceof iCondition) {
                 $blnPreviousIsNode = true;
-                array_push($objFinalNodeArray, $objNode);
+                $objFinalNodeArray[] = $objNode;
             } else {
                 if (!$objNode->_ParentNode) {
                     throw new InvalidCast('Unable to cast "' . $objNode->_Name . '" table to Column-based Node\NodeBase',
                         4);
                 }
                 if ($objNode->_PrimaryKeyNode) { // if a table node, then use the primary key of the table
-                    array_push($objFinalNodeArray, $objNode->_PrimaryKeyNode);
+                    $objFinalNodeArray[] = $objNode->_PrimaryKeyNode;
                 } else {
-                    array_push($objFinalNodeArray, $objNode);
+                    $objFinalNodeArray[] = $objNode;
                 }
                 $blnPreviousIsNode = true;
             }
@@ -84,54 +84,60 @@ class OrderBy extends ObjectBase implements ClauseInterface
     }
 
     /**
-     * Constructor function
+     * Initializes the object and processes the provided parameters to prepare
+     * nodes for internal use.
      *
-     * @param $mixParameterArray
+     * @param mixed $mixParameterArray An array or structure containing the
+     * input parameters that need to be processed into nodes.
      *
-     * @throws Caller|InvalidCast
+     * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct($mixParameterArray)
+    public function __construct(mixed $mixParameterArray)
     {
         $this->objNodeArray = $this->collapseNodes($mixParameterArray);
     }
 
     /**
-     * Updates the query builder. We delay processing of orderby clauses until just before statement creation.
+     * Updates the provided query builder object with the current order by a clause.
      *
-     * @param Builder $objBuilder
+     * @param Builder $objBuilder The query builder object to be updated.
+     * @return void
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $objBuilder->setOrderByClause($this);
     }
 
     /**
-     * Updates the query builder according to this clause. This is called by the query builder only.
+     * Updates the query builder to include order by clauses based on the nodes in the current object.
+     * This method parses the provided node array and appends the appropriate order by statements
+     * to the query being constructed. It accounts for column nodes, virtual nodes, and conditions,
+     * and applies optional ASC/DESC sort order directives where specified.
      *
-     * @param Builder $objBuilder
+     * @param Builder $objBuilder The query builder object being updated with order by clauses.
+     * @return void
      * @throws Caller
      */
-    public function _UpdateQueryBuilder(Builder $objBuilder)
+    public function _UpdateQueryBuilder(Builder $objBuilder): void
     {
         $intLength = count($this->objNodeArray);
         for ($intIndex = 0; $intIndex < $intLength; $intIndex++) {
             $objNode = $this->objNodeArray[$intIndex];
             if ($objNode instanceof Node\Virtual) {
                 if ($objNode->hasSubquery()) {
-                    throw new Caller('You cannot define a virtual node in an order by clause. You must use an Expand clause to define it.');
+                    throw new Caller('You cannot define a virtual node in an order by a clause. You must use an Expand clause to define it.');
                 }
                 $strOrderByCommand = '__' . $objNode->getAttributeName();
             } elseif ($objNode instanceof Node\Column) {
-                /** @var Node\Column $objNode */
                 $strOrderByCommand = $objNode->getColumnAlias($objBuilder);
             } elseif ($objNode instanceof iCondition) {
-                /** @var iCondition $objNode */
                 $strOrderByCommand = $objNode->getWhereClause($objBuilder);
             } else {
                 $strOrderByCommand = '';
             }
 
-            // Check to see if they want a ASC/DESC declarator
+            // Check to see if they want an ASC/DESC declarator
             if ((($intIndex + 1) < $intLength) &&
                 !($this->objNodeArray[$intIndex + 1] instanceof Node\NodeBase)
             ) {
@@ -149,22 +155,20 @@ class OrderBy extends ObjectBase implements ClauseInterface
         }
     }
 
-
     /**
-     * This is used primarly by datagrids wanting to use the "old Beta 2" style of
-     * Manual Queries.  This allows a datagrid to use QQ::OrderBy even though
-     * the manually-written Load method takes in Beta 2 string-based SortByCommand information.
+     * Generates a SQL ORDER BY clause manually by processing an array of nodes and determining
+     * the appropriate column order and sorting direction (ASC or DESC).
      *
-     * @return string
+     * @return string Returns the constructed SQL ORDER BY clause as a string.
      */
-    public function getAsManualSql()
+    public function getAsManualSql(): string
     {
         $strOrderByArray = array();
         $intLength = count($this->objNodeArray);
         for ($intIndex = 0; $intIndex < $intLength; $intIndex++) {
             $strOrderByCommand = $this->objNodeArray[$intIndex]->getAsManualSqlColumn();
 
-            // Check to see if they want a ASC/DESC declarator
+            // Check to see if they want an ASC/DESC declarator
             if ((($intIndex + 1) < $intLength) &&
                 !($this->objNodeArray[$intIndex + 1] instanceof Node\NodeBase)
             ) {
@@ -178,14 +182,19 @@ class OrderBy extends ObjectBase implements ClauseInterface
                 $intIndex++;
             }
 
-            array_push($strOrderByArray, $strOrderByCommand);
+            $strOrderByArray[] = $strOrderByCommand;
         }
 
         return implode(',', $strOrderByArray);
     }
 
-    public function __toString()
+    /**
+     * Provides a string representation of the object.
+     *
+     * @return string A string describing the QQOrderBy Clause.
+     */
+    public function __toString(): string
     {
-        return 'QQOrderBy Clause';
+        return 'OrderBy Clause';
     }
 }

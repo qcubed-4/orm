@@ -9,6 +9,7 @@
 
 namespace QCubed\Query\Condition;
 
+use QCubed\Exception\Caller;
 use QCubed\Query\Builder;
 use QCubed\Query\Node;
 
@@ -16,12 +17,11 @@ use QCubed\Query\Node;
  * Class Exists
  * Represent a test for an item being in a set of values.
  * @package QCubed\Query\Condition
- * @was QQConditionExists
  */
 class Exists extends ConditionBase implements ConditionInterface
 {
     /** @var Node\SubQuerySql */
-    protected $objNode;
+    protected Node\SubQuerySql $objNode;
 
     /**
      * @param Node\SubQuerySql $objNode
@@ -32,9 +32,13 @@ class Exists extends ConditionBase implements ConditionInterface
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the given query builder with a conditional "EXISTS" clause.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $objBuilder->addWhereItem('EXISTS ' . $this->objNode->getColumnAlias($objBuilder));
     }

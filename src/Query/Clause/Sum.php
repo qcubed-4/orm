@@ -12,14 +12,18 @@ namespace QCubed\Query\Clause;
 /**
  * Class Sum
  * @package QCubed\Query\Clause
- * @was QQSum
  */
 class Sum extends AggregationBase
 {
-    protected $strFunctionName = 'SUM';
+    protected string $strFunctionName = 'SUM';
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
-        return 'QQSum Clause';
+        return 'Sum Clause';
     }
 }

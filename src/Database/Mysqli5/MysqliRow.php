@@ -9,34 +9,49 @@
 
 namespace QCubed\Database\Mysqli5;
 
+use DateMalformedStringException;
 use QCubed\Database\RowBase;
 use QCubed\Database\FieldType;
+use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\QDateTime;
 use QCubed\Type;
 
 /**
  *
  * @package DatabaseAdapters
- * @was QMySqliDatabaseRow
  */
 class MysqliRow extends RowBase
 {
-    protected $strColumnArray;
+    protected array $strColumnArray;
 
-    public function __construct($strColumnArray)
+    /**
+     * Constructor to initialize the column array.
+     *
+     * @param array $strColumnArray The array of column values to be assigned.
+     *
+     * @return void
+     */
+    public function __construct(array $strColumnArray)
     {
         $this->strColumnArray = $strColumnArray;
     }
 
     /**
-     * Gets the value of a column from a result row returned by the database
+     * Retrieves the value of a column from the internal column array, optionally casting it to a specific type.
      *
-     * @param string $strColumnName Name of the column
-     * @param null|string $strColumnType A FieldType string
+     * @param string $strColumnName The name of the column to retrieve.
+     * @param string|null $strColumnType The desired type to cast the column value to, if applicable.
+     *                                   Supported types include FieldType::BIT, FieldType::BLOB, FieldType::CHAR,
+     *                                   FieldType::VAR_CHAR, FieldType::DATE, FieldType::DATE_TIME, FieldType::TIME,
+     *                                   FieldType::FLOAT, and FieldType::INTEGER.
      *
-     * @return mixed
+     * @return mixed The value of the column, optionally cast to the specified type. Returns null if the column is not found.
+     * @throws DateMalformedStringException
+     * @throws Caller
+     * @throws InvalidCast
      */
-    public function getColumn($strColumnName, $strColumnType = null)
+    public function getColumn(string $strColumnName, ?string $strColumnType = null): mixed
     {
         if (!isset($this->strColumnArray[$strColumnName])) {
             return null;
@@ -52,7 +67,7 @@ class MysqliRow extends RowBase
                 }
 
                 // Otherwise, use PHP conditional to determine true or false
-                return ($strColumnValue) ? true : false;
+                return (bool)$strColumnValue;
 
             case FieldType::BLOB:
             case FieldType::CHAR:
@@ -78,20 +93,24 @@ class MysqliRow extends RowBase
     }
 
     /**
-     * Tells whether a particular column exists in a returned database row
+     * Checks if a given column exists in the internal column array.
      *
-     * @param string $strColumnName Name of te column
+     * @param string $strColumnName The name of the column to check for existence.
      *
-     * @return bool
+     * @return bool True if the column exists, false otherwise.
      */
-    public function columnExists($strColumnName)
+    public function columnExists(string $strColumnName): bool
     {
         return array_key_exists($strColumnName, $this->strColumnArray);
     }
 
-    public function getColumnNameArray()
+    /**
+     * Retrieves the internal array of column names and their associated values.
+     *
+     * @return array An associative array where keys represent column names and values represent their corresponding data.
+     */
+    public function getColumnNameArray(): array
     {
         return $this->strColumnArray;
     }
 }
-

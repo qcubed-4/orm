@@ -1,7 +1,7 @@
 
-    ///////////////////////////////
+    ///////////////////////////
     // PROTECTED MEMBER OBJECTS
-    ///////////////////////////////
+    ///////////////////////////
 
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
 <?php if (($objColumn->Reference) && (!$objColumn->Reference->IsType)) { ?>
@@ -11,11 +11,10 @@
      *
      * NOTE: Always use the <?= $objColumn->Reference->PropertyName ?> property getter to correctly retrieve this <?= $objColumn->Reference->VariableType ?> object.
      * (Because this class implements late binding, this variable reference MAY be null.)
-     * @var <?= $objColumn->Reference->VariableType ?> <?= $objColumn->Reference->VariableName ?>
+     * @var <?= $objColumn->Reference->VariableType ?>|false|null <?= $objColumn->Reference->VariableName ?>
 
      */
-    protected $<?= $objColumn->Reference->VariableName ?>;
-
+    protected <?= $objColumn->Reference->VariableType ?>|false|null $<?= $objColumn->Reference->VariableName ?> = null;
 <?php } ?>
 <?php } ?>
 <?php foreach ($objTable->ReverseReferenceArray as $objReverseReference) { ?>
@@ -26,10 +25,10 @@
      *
      * NOTE: Always use the <?= $objReverseReference->ObjectPropertyName ?> property getter to correctly retrieve this <?= $objReverseReference->VariableType ?> object.
      * (Because this class implements late binding, this variable reference MAY be null.)
-     * @var <?= $objReverseReference->VariableType ?> <?= $objReverseReference->ObjectMemberVariable ?>
+     * @var <?= $objReverseReference->VariableType ?>|false|null <?= $objReverseReference->ObjectMemberVariable ?>
 
      */
-    protected $<?= $objReverseReference->ObjectMemberVariable ?>;
+    protected <?= $objReverseReference->VariableType ?>|false|null $<?= $objReverseReference->ObjectMemberVariable ?> = null;
 
     /**
      * Used internally to manage whether the adjoined <?= $objReverseReference->ObjectDescription ?> object
@@ -37,7 +36,6 @@
      *
      * NOTE: Do not manually update this value
      */
-    protected $blnDirty<?= $objReverseReference->ObjectPropertyName ?>;
-
+    protected bool $blnDirty<?= $objReverseReference->ObjectPropertyName ?> = false;
 <?php } ?>
 <?php }

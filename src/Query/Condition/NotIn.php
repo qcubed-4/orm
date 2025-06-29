@@ -10,7 +10,9 @@
 namespace QCubed\Query\Condition;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
+use QCubed\Query\Node\Column;
 use QCubed\Type;
 use QCubed\Query\Node;
 
@@ -19,16 +21,18 @@ use QCubed\Query\Node;
  * Class NotIn
  * Represent a test for an item being in a set of values.
  * @package QCubed\Query\Condition
- * @was QQConditionNotIn
  */
 class NotIn extends ComparisonBase
 {
     /**
-     * @param Node\Column $objQueryNode
-     * @param mixed|null $mixValuesArray
+     * Constructor method.
+     *
+     * @param Column $objQueryNode The query node to be set.
+     * @param mixed $mixValuesArray An array of values or an instance of Node\NamedValue or Node\SubQueryBase.
      * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $mixValuesArray)
+    public function __construct(Node\Column $objQueryNode, mixed $mixValuesArray)
     {
         parent::__construct($objQueryNode);
 
@@ -50,22 +54,24 @@ class NotIn extends ComparisonBase
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the query builder with a NOT IN condition based on the operand.
+     *
+     * @param Builder $objBuilder The query builder to update with the NOT IN condition.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $mixOperand = $this->mixOperand;
         if ($mixOperand instanceof Node\NamedValue) {
-            /** @var Node\NamedValue $mixOperand */
             $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' NOT IN (' . $mixOperand->parameter() . ')');
         } else {
             if ($mixOperand instanceof Node\SubQueryBase) {
-                /** @var Node\SubQueryBase $mixOperand */
                 $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' NOT IN ' . $mixOperand->getColumnAlias($objBuilder));
             } else {
                 $strParameters = array();
                 foreach ($mixOperand as $mixParameter) {
-                    array_push($strParameters, $objBuilder->Database->sqlVariable($mixParameter));
+                    $strParameters[] = $objBuilder->Database->sqlVariable($mixParameter);
                 }
                 if (count($strParameters)) {
                     $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' NOT IN (' . implode(',',

@@ -13,9 +13,8 @@ namespace QCubed\Query\Condition;
 /**
  * Class AndCondition
  * @package QCubed\Query\Condition
- * @was QQConditionAnd
  */
 class AndCondition extends LogicalBase
 {
-    protected $strOperator = 'AND';
+    protected string $strOperator = 'AND';
 }

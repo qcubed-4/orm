@@ -16,7 +16,6 @@ use QCubed\Query\Condition\ConditionInterface as iCondition;
 /**
  * Class Not
  * @package QCubed\Query\Condition
- * @was QQConditionNot
  */
 class Not extends LogicalBase
 {
@@ -25,7 +24,14 @@ class Not extends LogicalBase
         parent::__construct([$objCondition]);
     }
 
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the given query builder by adding specific conditions.
+     *
+     * @param Builder $objBuilder The query builder object that will be modified.
+     * @return void
+     * @throws Caller Thrown if an error occurs while updating the query builder.
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $objBuilder->addWhereItem('(NOT');
         try {

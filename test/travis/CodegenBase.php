@@ -41,7 +41,7 @@ class CodegenBase extends \QCubed\Codegen\CodegenBase
      * @param string $strName
      * @return string
      */
-    protected function pluralize($strName)
+    protected function pluralize(string $strName): string
     {
         // Special Rules go Here
         switch (true) {

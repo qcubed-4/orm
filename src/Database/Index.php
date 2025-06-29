@@ -9,32 +9,35 @@
 
 namespace QCubed\Database;
 
+use Exception;
 use QCubed\Exception\Caller;
 use QCubed\ObjectBase;
 
 /**
- * To handle index in a table in database
+ * To handle index in a table in a database
  * @package DatabaseAdapters
- * @was QDatabaseIndex
  */
 class Index extends ObjectBase
 {
-    /** @var string Name of the index */
-    protected $strKeyName;
+    /** @var string|null Name of the index */
+    protected ?string $strKeyName = null;
     /** @var bool Is the Index a primary key index? */
-    protected $blnPrimaryKey;
+    protected bool $blnPrimaryKey;
     /** @var bool Is this a Unique index? */
-    protected $blnUnique;
+    protected bool $blnUnique;
     /** @var array Array of column names on which this index is defined */
-    protected $strColumnNameArray;
+    protected array $strColumnNameArray;
 
     /**
-     * @param string $strKeyName Name of the index
-     * @param string $blnPrimaryKey Is this index a Primary key index?
-     * @param string $blnUnique Is this index unique?
-     * @param array $strColumnNameArray Columns on which this index is defined
+     * Initializes a new instance of the class with the specified parameters.
+     *
+     * @param string|null $strKeyName The name of the key.
+     * @param bool $blnPrimaryKey Indicates whether the key is a primary key.
+     * @param bool $blnUnique Indicates whether the key is unique.
+     * @param array $strColumnNameArray An array of column names associated with the key.
+     *
      */
-    public function __construct($strKeyName, $blnPrimaryKey, $blnUnique, $strColumnNameArray)
+    public function __construct(?string $strKeyName, bool $blnPrimaryKey, bool $blnUnique, array $strColumnNameArray)
     {
         $this->strKeyName = $strKeyName;
         $this->blnPrimaryKey = $blnPrimaryKey;
@@ -47,9 +50,9 @@ class Index extends ObjectBase
      * @param string $strName
      *
      * @return mixed
-     * @throws \Exception|Caller
+     * @throws Exception|Caller
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case "KeyName":
@@ -70,4 +73,3 @@ class Index extends ObjectBase
         }
     }
 }
-

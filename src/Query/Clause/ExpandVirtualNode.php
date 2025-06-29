@@ -18,18 +18,31 @@ use QCubed\Query\Node\Virtual;
  * Class ExpandVirtualNode
  * Node representing an expansion on a virtual node
  * @package QCubed\Query\Clause
- * @was QQExpandVirtualNode
  */
 class ExpandVirtualNode extends ObjectBase implements ClauseInterface
 {
-    protected $objNode;
+    protected Virtual $objNode;
 
+    /**
+     * Constructor method to initialize the object with a Virtual node.
+     *
+     * @param Virtual $objNode The Virtual node to associate with this object.
+     * @return void
+     */
     public function __construct(Virtual $objNode)
     {
         $this->objNode = $objNode;
     }
 
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the query builder by adding a select function with specified parameters
+     * based on the column alias and attribute name provided by the node.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     * @return void
+     * @throws Caller If an error occurs while adding the select function, the exception will be rethrown with incremented offset.
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         try {
             $objBuilder->addSelectFunction(null, $this->objNode->getColumnAlias($objBuilder),
@@ -40,8 +53,13 @@ class ExpandVirtualNode extends ObjectBase implements ClauseInterface
         }
     }
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
-        return 'QQExpandVirtualNode Clause';
+        return 'ExpandVirtualNode Clause';
     }
 }

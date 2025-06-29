@@ -4,19 +4,19 @@
  */
 
 if (count($objTable->PrimaryKeyColumnArray) == 1) {
-	$pkType = $objTable->PrimaryKeyColumnArray[0]->VariableType;
+    $pkType = $objTable->PrimaryKeyColumnArray[0]->VariableType;
 } else {
-	$pkType = 'string';	// combined pk
+    $pkType = 'string';	// combined pk
 }
-
 ?>
 
-   /**
-	* The current record has just been inserted into the table. Let everyone know.
+    /**
+    * Broadcast a notification when a new record is inserted into the table.
     *
-	* @param <?= $pkType ?>	$pk Primary key of record just inserted.
-	*/
-	protected static function broadcastInsert($pk)
+    * @param mixed <?= $pkType ?> The primary key of the record being inserted.
+    * @return void
+    */
+	protected static function broadcastInsert(mixed $pk): vpid
     {
 	}
 

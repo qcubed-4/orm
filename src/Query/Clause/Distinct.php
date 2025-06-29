@@ -15,18 +15,28 @@ use QCubed\Query\Builder;
 /**
  * Class Distinct
  * @package QCubed\Query\Clause
- * @was QQDistinct
  */
 class Distinct extends ObjectBase implements ClauseInterface
 {
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the given query builder instance by setting the distinct flag.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     * @return void
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $objBuilder->setDistinctFlag();
     }
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
-        return 'QQDistinct Clause';
+        return 'Distinct Clause';
     }
 }
 

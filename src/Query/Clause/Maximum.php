@@ -12,13 +12,17 @@ namespace QCubed\Query\Clause;
 /**
  * Class Maximum
  * @package QCubed\Query\Clause
- * @was QQMaximum
  */
 class Maximum extends AggregationBase
 {
-    protected $strFunctionName = 'MAX';
+    protected string $strFunctionName = 'MAX';
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
         return 'Maximum Clause';
     }

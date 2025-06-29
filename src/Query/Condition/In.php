@@ -10,7 +10,9 @@
 namespace QCubed\Query\Condition;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
+use QCubed\Query\Node\Column;
 use QCubed\Type;
 use QCubed\Query\Node;
 
@@ -19,17 +21,18 @@ use QCubed\Query\Node;
  * Class In
  * Represent a test for an item being in a set of values.
  * @package QCubed\Query\Condition
- * @was QQConditionIn
  */
 class In extends ComparisonBase
 {
     /**
-     * In constructor.
-     * @param Node\Column $objQueryNode
-     * @param mixed|null $mixValuesArray
+     * Constructor for the class.
+     *
+     * @param Column $objQueryNode An instance of the query node used for initialization.
+     * @param mixed $mixValuesArray The values to be processed can be of various types, such as Node\NamedValue, Node\SubQueryBase, or an array.
      * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $mixValuesArray)
+    public function __construct(Node\Column $objQueryNode, mixed $mixValuesArray)
     {
         parent::__construct($objQueryNode);
 
@@ -51,22 +54,24 @@ class In extends ComparisonBase
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the query builder with the corresponding SQL conditions based on the operand.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $mixOperand = $this->mixOperand;
         if ($mixOperand instanceof Node\NamedValue) {
-            /** @var Node\NamedValue $mixOperand */
             $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' IN (' . $mixOperand->parameter() . ')');
         } else {
             if ($mixOperand instanceof Node\SubQueryBase) {
-                /** @var Node\SubQueryBase $mixOperand */
                 $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' IN ' . $mixOperand->getColumnAlias($objBuilder));
             } else {
                 $strParameters = array();
                 foreach ($mixOperand as $mixParameter) {
-                    array_push($strParameters, $objBuilder->Database->sqlVariable($mixParameter));
+                    $strParameters[] = $objBuilder->Database->sqlVariable($mixParameter);
                 }
                 if (count($strParameters)) {
                     $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' IN (' . implode(',',

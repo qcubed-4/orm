@@ -1,47 +1,49 @@
-<?php 
-	// Preliminary calculations and helper routines here
+<?php
+use QCubed\Codegen\CodegenBase;
+use QCubed\Codegen\SqlTable;
 
-	$blnImmediateExpansions = $objTable->HasImmediateArrayExpansions();
-	$blnExtendedExpansions = $objTable->HasExtendedArrayExpansions($objCodeGen);
+/** @var SqlTable $objTable */
 
-	if (count($objTable->PrimaryKeyColumnArray) > 1 &&
-			$blnImmediateExpansions) {
-		throw new QCubed\Exception\Caller ("Multi-key table with array expansion not supported.");
-	}
-	
-		
+/** @var CodegenBase $objCodeGen */
+
+// Preliminary calculations and helper routines here
+
+$blnImmediateExpansions = $objTable->HasImmediateArrayExpansions();
+$blnExtendedExpansions = $objTable->hasExtendedArrayExpansions($objCodeGen);
+
+if (count($objTable->PrimaryKeyColumnArray) > 1 && $blnImmediateExpansions) {
+    throw new QCubed\Exception\Caller ("Multi-key table with array expansion is not supported.");
+}
 ?>
 
     /**
-     * Instantiate a <?= $objTable->ClassName ?> from a Database Row.
-     * Takes in an optional strAliasPrefix, used in case another Object::instantiateDbRow
-     * is calling this <?= $objTable->ClassName ?>::instantiateDbRow in order to perform
-     * early binding on referenced objects.
-     * @param \QCubed\Database\RowBase $objDbRow
-     * @param string $strAliasPrefix
-     * @param Node\NodeBase $objExpandAsArrayNode
-     * @param array|null $objPreviousItemArray Used by expansion code to aid in expanding arrays
-     * @param string[] $strColumnAliasArray Array of column aliases mapping names in the query to items in the object
-     * @param boolean $blnCheckDuplicate Used by ExpandArray to indicate we should not create a new object if this is a duplicate of a previoius object
-     * @param string $strParentExpansionKey If this is part of an expansion, indicates what the parent item is
-     * @param mixed $objExpansionParent If this is part of an expansion, is the object corresponding to the key so that we can refer back to the parent object
-     * @return mixed Either a <?= $objTable->ClassName ?>, or false to indicate the dbrow was used in an expansion, or null to indicate that this leaf is a duplicate.
+    * Instantiate an object from a database row.
+    * This method includes support for object expansion, early/virtual binding, and caching mechanisms.
+    *
+    * @param RowBase $objDbRow The database row to be converted into an object instance.
+    * @param string|null $strAliasPrefix Alias prefix for the columns in the database row (optional).
+    * @param mixed $objExpandAsArrayNode Node used for expanding objects as arrays (if applicable).
+    * @param array|null $objPreviousItemArray Array of previously instantiated items for duplication checks (optional).
+    * @param array $strColumnAliasArray Array mapping column aliases to column names (optional).
+    * @param bool|null $blnCheckDuplicate A flag indicating whether duplicate checks should be performed (optional).
+    * @param string|null $strParentExpansionKey Parent key for object expansion (optional).
+    * @param mixed $objExpansionParent The parent object in the context of object expansion (optional).
+    * @return <?= $objTable->ClassName ?>|false|null Returns the instantiated Person object, or null if there was no valid database row or if it was a duplicate in a complex join.
+    * @throws Caller
+    * @throws DateMalformedStringException
+    * @throws InvalidCast
     */
     public static function instantiateDbRow(
-    \QCubed\Database\RowBase $objDbRow,
-    ?string $strAliasPrefix = null,
-    ?Node\NodeBase $objExpandAsArrayNode = null,
-    ?array $objPreviousItemArray = null,
-    array $strColumnAliasArray = [],
-    bool $blnCheckDuplicate = false,
-    ?string $strParentExpansionKey = null,
-    mixed $objExpansionParent = null
-    ) {
-        // If blank row, return null
-        if (!$objDbRow) {
-            return null;
-        }
-
+        RowBase     $objDbRow,
+        ?string     $strAliasPrefix = null,
+        mixed       $objExpandAsArrayNode = null,
+        ?array      $objPreviousItemArray = null,
+        array       $strColumnAliasArray = [],
+        ?bool       $blnCheckDuplicate = false,
+        ?string     $strParentExpansionKey = null,
+        mixed       $objExpansionParent = null
+    ): <?= $objTable->ClassName ?>|false|null
+    {
         $strColumns = $objDbRow->GetColumnNameArray();
         $strColumnKeys = array_fill_keys(array_keys($strColumns), 1); // to be able to use isset
 
@@ -50,8 +52,7 @@
         if (empty ($strAliasPrefix) && $objPreviousItemArray) {
             $objPreviousItemArray = (!empty ($objPreviousItemArray[$key]) ? $objPreviousItemArray[$key] : null);
         }
-<?php } ?>			
-
+<?php } ?>
 <?php 
 if ($blnImmediateExpansions || $blnExtendedExpansions) {
 ?>
@@ -70,7 +71,6 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
 <?php 
 } // if
 ?>
-
 <?php if ($objTable->PrimaryKeyColumnArray)  { ?>
 
         $objToReturn = static::getFromCache ($key);
@@ -94,7 +94,7 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
                     <?= $s ?>
 
                 }
-<?php 	} ?>
+<?php } ?>
                 $objToReturn-><?= $objColumn->VariableName ?> = $mixVal;
 <?php } ?>
 <?php if (($objColumn->PrimaryKey) && (!$objColumn->Identity)) { ?>
@@ -107,8 +107,6 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
             }
 <?php } ?>
 <?php if ($objTable->PrimaryKeyColumnArray)  { ?>
-
-            assert ($key === null || $objToReturn->PrimaryKey() == $key);
 
             if (!$blnNoCache) {
                 $objToReturn->WriteToCache();
@@ -124,7 +122,7 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
                 }
 <?php } ?>
                 // this is a duplicate in a complex join
-                return null; // indicates no object created and the db row has not been used
+                return null; // indicates no object created, and the db row has not been used
             }
         }
 
@@ -135,7 +133,6 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
             if (strncmp($strColumnName, $strVirtualPrefix, $strVirtualPrefixLength) == 0)
                 $objToReturn->__strVirtualAttributeArray[substr($strColumnName, $strVirtualPrefixLength)] = $mixValue;
         }
-
 
         // Prepare to Check for Early/Virtual Binding
 
@@ -162,7 +159,6 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
 
 <?php } ?>
 <?php } ?>
-
 <?php foreach ($objTable->ReverseReferenceArray as $objReference) { ?><?php if ($objReference->Unique) { ?>
         // Check for <?= $objReference->ObjectDescription ?> Unique ReverseReference Binding
         $strAlias = $strAliasPrefix . '<?= strtolower($objReference->ObjectDescription) ?>__<?= $objCodeGen->GetTable($objReference->Table)->PrimaryKeyColumnArray[0]->Name ?>';
@@ -173,14 +169,13 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
                 $objToReturn->obj<?= $objReference->ObjectDescription ?> = <?= $objReference->VariableType ?>::instantiateDbRow($objDbRow, $strAliasPrefix . '<?= strtolower($objReference->ObjectDescription) ?>__', $objExpansionNode, null, $strColumnAliasArray, false, '<?= $objReference->Column ?>', $objToReturn);
             }
             else {
-                // We ATTEMPTED to do an Early Bind but the Object Doesn't Exist
+                // We ATTEMPTED to do an Early Bind, but the Object Doesn't Exist
                 // Let's set to FALSE so that the object knows not to try and re-query again
                 $objToReturn->obj<?= $objReference->ObjectDescription ?> = false;
             }
         }
 
 <?php } ?><?php } ?>
-
 <?php foreach ($objTable->ManyToManyReferenceArray as $objReference) { ?>
 <?php 
 $objAssociatedTable = $objCodeGen->GetTable($objReference->AssociatedTable);
@@ -189,9 +184,7 @@ if (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ) {
     $varPrefix = '_int';
 } else {
     $blnIsType = false;
-    $varPrefix = '_obj';
-}
-?>
+    $varPrefix = '_obj';} ?>
         // Check for <?= $objReference->ObjectDescription ?> Virtual Binding
         $strAlias = $strAliasPrefix . '<?= strtolower($objReference->ObjectDescription) ?>__<?= $objReference->OppositeColumn ?>__<?= $objCodeGen->GetTable($objReference->AssociatedTable)->PrimaryKeyColumnArray[0]->Name ?>';
         $strAliasName = !empty($strColumnAliasArray[$strAlias]) ? $strColumnAliasArray[$strAlias] : $strAlias;
@@ -221,7 +214,6 @@ if (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ) {
         }
 
 <?php } ?>
-
 <?php foreach ($objTable->ReverseReferenceArray as $objReference) { ?><?php if (!$objReference->Unique) { ?>
         // Check for <?= $objReference->ObjectDescription ?> Virtual Binding
         $strAlias = $strAliasPrefix . '<?= strtolower($objReference->ObjectDescription) ?>__<?= $objCodeGen->GetTable($objReference->Table)->PrimaryKeyColumnArray[0]->Name ?>';
@@ -246,27 +238,29 @@ if (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ) {
     }
 
     /**
-     * Instantiate an array of <?= $objTable->ClassNamePlural ?> from a Database Result
-     * @param \QCubed\Database\ResultBase $objDbResult
-     * @param Node\NodeBase $objExpandAsArrayNode
-     * @param string[] $strColumnAliasArray
-     * @return <?= $objTable->ClassName ?>[]
-     */
-    public static function instantiateDbResult(\QCubed\Database\ResultBase $objDbResult, ?Node\NodeBase $objExpandAsArrayNode = null, ?array $strColumnAliasArray = null)
+    * Instantiate an array of <?= $objTable->ClassNamePlural ?> from a Database Result
+    * @param ResultBase $objDbResult
+    * @param NodeBase|null $objExpandAsArrayNode
+    * @param string[] $strColumnAliasArray
+    * @return <?= $objTable->ClassName ?>[]
+    * @throws Caller
+    * @throws DateMalformedStringException
+    * @throws InvalidCast
+    */
+    public static function instantiateDbResult(
+        ResultBase $objDbResult,
+        ?Node\NodeBase $objExpandAsArrayNode = null,
+        ?array $strColumnAliasArray = null
+    ): array
     {
         $objToReturn = array();
+        $objPrevItemArray = array();
 
         if (!$strColumnAliasArray)
             $strColumnAliasArray = array();
 
-        // If blank resultset, then return empty array
-        if (!$objDbResult)
-            return $objToReturn;
-
         // Load up the return array with each row
         if ($objExpandAsArrayNode) {
-            $objToReturn = array();
-            $objPrevItemArray = array();
             while ($objDbRow = $objDbResult->GetNextRow()) {
                 $objItem = <?= $objTable->ClassName ?>::instantiateDbRow($objDbRow, null, $objExpandAsArrayNode, $objPrevItemArray, $strColumnAliasArray);
                 if ($objItem) {
@@ -276,7 +270,7 @@ if (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ) {
 <?php } else { ?>
                     $objPrevItemArray[] = $objItem;
 
-<?php } ?>		
+<?php } ?>
                 }
             }
         } else {
@@ -287,20 +281,20 @@ if (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ) {
         return $objToReturn;
     }
 
-
     /**
-     * Instantiate a single <?= $objTable->ClassName ?> object from a query cursor (e.g. a DB ResultSet).
-     * Cursor is automatically moved to the "next row" of the result set.
-     * Will return NULL if no cursor or if the cursor has no more rows in the resultset.
-     * @param \QCubed\Database\ResultBase $objDbResult cursor resource
-     * @return <?= $objTable->ClassName ?> next row resulting from the query
-     */
-    public static function instantiateCursor(\QCubed\Database\ResultBase $objDbResult)
-    {
-        // If blank resultset, then return empty result
-        if (!$objDbResult) return null;
+    * Instantiate a single <?= $objTable->ClassName ?> object from a query cursor (e.g., a DB ResultSet).
+    * The Cursor is automatically moved to the "next row" of the result set.
+    * Will return NULL if no cursor or if the cursor has no more rows in the resultset.
+    * @param ResultBase $objDbResult cursor resource
+    * @return <?= $objTable->ClassName ?>|null next row resulting from the query
+    * @throws Caller
+    * @throws DateMalformedStringException
+    * @throws InvalidCast
+    */
+    public static function instantiateCursor(ResultBase $objDbResult): ?<?= $objTable->ClassName ?>
 
-        // If empty resultset, then return empty result
+    {
+        // If an empty resultset, then return an empty result
         $objDbRow = $objDbResult->GetNextRow();
         if (!$objDbRow) return null;
 

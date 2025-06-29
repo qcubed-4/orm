@@ -22,7 +22,7 @@ class OptimisticLocking extends Caller
      * Constructor method
      * @param string $strClass
      */
-    public function __construct($strClass)
+    public function __construct(string $strClass)
     {
         parent::__construct(sprintf('Optimistic Locking constraint when trying to update %s object.  To update anyway, call ->save() with $blnForceUpdate set to true', $strClass));
     }

@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 	/**
-	 * This is a *nix/Mac-based PHP CLI (Command Line Interface) script
+	 * This is a *nix/Mac-based PHP CLI (Command Line Interface) script,
 	 * which is a wrapper around the CodeGen object.
 	 *
 	 * Remember: You may need to update the top line to have it point

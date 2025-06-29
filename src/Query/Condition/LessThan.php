@@ -13,9 +13,8 @@ namespace QCubed\Query\Condition;
 /**
  * Class LessThan
  * @package QCubed\Query\Condition
- * @was QQConditionLessThan
  */
 class LessThan extends ComparisonBase
 {
-    protected $strOperator = ' < ';
+    protected string $strOperator = ' < ';
 }

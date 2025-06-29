@@ -21,11 +21,14 @@ class CodegenBase extends \QCubed\Codegen\CodegenBase
 {
 
     /**
-     * Construct the CodeGen object.
+     * Constructor method.
      *
-     * Gives you an opportunity to read your xml file and make codegen changes accordingly.
+     * Initializes the template paths using the settings XML provided.
+     *
+     * @param mixed $objSettingsXml The settings XML object used for initialization.
+     * @return void
      */
-    public function __construct($objSettingsXml)
+    public function __construct(mixed $objSettingsXml)
     {
         static::$TemplatePaths = $this->getInstalledTemplatePaths();
     }
@@ -33,7 +36,7 @@ class CodegenBase extends \QCubed\Codegen\CodegenBase
     /**
      * Calls the super class, then inserts our own paths to our templates.
      */
-    public function getInstalledTemplatePaths()
+    public function getInstalledTemplatePaths(): array
     {
         $paths = parent::getInstalledTemplatePaths();
 
@@ -51,7 +54,7 @@ class CodegenBase extends \QCubed\Codegen\CodegenBase
      * @param string $strName
      * @return string
      */
-    protected function pluralize($strName)
+    protected function pluralize(string $strName): string
     {
         // Special Rules go Here
         switch (true) {

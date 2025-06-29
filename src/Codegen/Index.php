@@ -10,8 +10,11 @@
 namespace QCubed\Codegen;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
+use QCubed\Exception\UndefinedProperty;
 use QCubed\ObjectBase;
 use QCubed\Type;
+use Exception;
 
 /**
  * Used by the QCubed Code Generator to describe a table Index
@@ -30,29 +33,29 @@ class Index extends ObjectBase
     /////////////////////////////
 
     /**
-     * Name of the index object, as defined in the database or create script
+     * Name of the index object, as defined in the database or create a script
      * @var string KeyName
      */
-    protected $strKeyName;
+    protected string $strKeyName;
 
     /**
      * Specifies whether or not the index is unique
      * @var bool Unique
      */
-    protected $blnUnique;
+    protected bool $blnUnique;
 
     /**
      * Specifies whether or not the column is the Primary Key index
      * @var bool PrimaryKey
      */
-    protected $blnPrimaryKey;
+    protected bool $blnPrimaryKey;
 
     /**
      * Array of strings containing the names of the columns that
      * this index indexes (indexed numerically)
      * @var string[] ColumnNameArray
      */
-    protected $strColumnNameArray;
+    protected array $strColumnNameArray;
 
 
     ////////////////////
@@ -64,10 +67,10 @@ class Index extends ObjectBase
      * This will get the value of $strName
      *
      * @param string $strName Name of the property to get
-     * @throws Caller
      * @return mixed
+     *@throws Caller
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'KeyName':
@@ -94,23 +97,30 @@ class Index extends ObjectBase
      *
      * @param string $strName Name of the property to set
      * @param string $mixValue New value of the property
+     * @return void
      * @throws Caller
-     * @return mixed
+     * @throws InvalidCast
+     * @throws UndefinedProperty
+     * @throws Exception
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         try {
             switch ($strName) {
                 case 'KeyName':
-                    return $this->strKeyName = Type::cast($mixValue, Type::STRING);
+                    $this->strKeyName = Type::cast($mixValue, Type::STRING);
+                    break;
                 case 'Unique':
-                    return $this->blnUnique = Type::cast($mixValue, Type::BOOLEAN);
+                    $this->blnUnique = Type::cast($mixValue, Type::BOOLEAN);
+                    break;
                 case 'PrimaryKey':
-                    return $this->blnPrimaryKey = Type::cast($mixValue, Type::BOOLEAN);
+                    $this->blnPrimaryKey = Type::cast($mixValue, Type::BOOLEAN);
+                    break;
                 case 'ColumnNameArray':
-                    return $this->strColumnNameArray = Type::cast($mixValue, Type::ARRAY_TYPE);
+                    $this->strColumnNameArray = Type::cast($mixValue, Type::ARRAY_TYPE);
+                    break;
                 default:
-                    return parent::__set($strName, $mixValue);
+                    parent::__set($strName, $mixValue);
             }
         } catch (Caller $objExc) {
             $objExc->incrementOffset();

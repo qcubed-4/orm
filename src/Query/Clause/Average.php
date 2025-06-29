@@ -12,13 +12,17 @@ namespace QCubed\Query\Clause;
 /**
  * Class Average
  * @package QCubed\Query\Clause
- * @was QQAverage
  */
 class Average extends AggregationBase
 {
-    protected $strFunctionName = 'AVG';
+    protected string $strFunctionName = 'AVG';
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
         return 'Average Clause';
     }

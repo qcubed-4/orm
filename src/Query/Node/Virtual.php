@@ -15,20 +15,22 @@ use QCubed\Query\QQ;
 
 /**
  * Class Virtual
- * Class to represent a computed value or sub sql expression with an alias that can be used to query and sort
+ * Class to represent a computed value or sub SQL expression with an alias that can be used to query and sort
  *
  * @package QCubed\Query\Node
- * @was QQVirtualNode
  */
 class Virtual extends NoParentBase
 {
-    protected $objSubQueryDefinition;
+    protected ?SubQueryBase $objSubQueryDefinition = null;
 
     /**
-     * @param $strName
-     * @param SubQueryBase|null $objSubQueryDefinition
+     * Constructor method for initializing the object.
+     *
+     * @param string $strName The name used to define the object or entity.
+     * @param SubQueryBase|null $objSubQueryDefinition An optional sub-query definition to be associated with the object.
+     * @return void
      */
-    public function __construct($strName, ?SubQueryBase $objSubQueryDefinition = null)
+    public function __construct(string $strName, ?SubQueryBase $objSubQueryDefinition = null)
     {
         parent::__construct('', '', '');
         $this->objParentNode = true;
@@ -38,11 +40,13 @@ class Virtual extends NoParentBase
     }
 
     /**
-     * @param Builder $objBuilder
-     * @return string
-     * @throws Caller
+     * Retrieves the column alias based on the provided builder and the defined sub-query.
+     *
+     * @param Builder $objBuilder The query builder instance used to construct the SQL and manage aliases.
+     * @return string The resolved column alias for the current node or sub-query.
+     * @throws Caller If the virtual node cannot be resolved.
      */
-    public function getColumnAlias(Builder $objBuilder)
+    public function getColumnAlias(Builder $objBuilder): string
     {
         if ($this->objSubQueryDefinition) {
             $objBuilder->setVirtualNode($this->strName, $this->objSubQueryDefinition);
@@ -59,12 +63,22 @@ class Virtual extends NoParentBase
         }
     }
 
-    public function getAttributeName()
+    /**
+     * Retrieves the name of the attribute.
+     *
+     * @return string The name of the attribute.
+     */
+    public function getAttributeName(): string
     {
         return $this->strName;
     }
 
-    public function hasSubquery()
+    /**
+     * Determines if a subquery is associated with the object.
+     *
+     * @return bool Returns true if a subquery definition exists; otherwise, false.
+     */
+    public function hasSubquery(): bool
     {
         return $this->objSubQueryDefinition != null;
     }

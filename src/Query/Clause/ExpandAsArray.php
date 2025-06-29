@@ -18,23 +18,27 @@ use QCubed\Query\Node;
 /**
  * Class ExpandAsArray
  * @package QCubed\Query\Clause
- * @was QQExpandAsArray
  */
 class ExpandAsArray extends ObjectBase implements ClauseInterface
 {
     /** @var Node\NodeBase */
-    protected $objNode;
-    protected $objCondition;
-    protected $objSelect;
+    protected Node\NodeBase $objNode;
+    protected ?iCondition $objCondition = null;
+    protected ?Select $objSelect = null;
 
     /**
-     * ExpandAsArray constructor.
-     * @param Node\NodeBase $objNode
-     * @param null $objCondition
-     * @param Select|null $objSelect
-     * @throws Caller
+     * Constructor for initializing an ExpandAsArray clause.
+     *
+     * @param Node\NodeBase $objNode The node representing the association or reverse reference.
+     * @param mixed|null $objCondition Optional condition, which must be an instance of iCondition or null.
+     * @param Select|null $objSelect Optional select object for specifying the fields to be selected.
+     *
+     * @return void
+     *
+     * @throws Caller Throws an exception if the provided node is not an Association or ReverseReference,
+     *                or if the condition is not an instance of iCondition when provided.
      */
-    public function __construct(Node\NodeBase $objNode, $objCondition = null, ?Select $objSelect = null)
+    public function __construct(Node\NodeBase $objNode, mixed $objCondition = null, ?Select $objSelect = null)
     {
         // For backwards compatibility with v2, which did not have a condition parameter, we will detect what the 2nd param is.
         // Ensure that this is an Association
@@ -48,11 +52,11 @@ class ExpandAsArray extends ObjectBase implements ClauseInterface
         } else {
             if (!is_null($objCondition)) {
                 /*
-                if ($objNode instanceof Association) {
-                    throw new Caller('Join conditions can only be applied to reverse reference nodes here. Try putting a condition on the next level down.', 2);
+                If ($objNode instanceof Association) {
+                    throw new Caller ('Join conditions can only be applied to reverse reference nodes here. Try putting a condition on the next level down.', 2);
                 }*/
                 if (!($objCondition instanceof iCondition)) {
-                    throw new Caller('Condition clause parameter must be a iCondition dervied class.', 2);
+                    throw new Caller('Condition clause parameter must be an iCondition derived class.', 2);
                 }
             }
             $this->objNode = $objNode;
@@ -62,7 +66,14 @@ class ExpandAsArray extends ObjectBase implements ClauseInterface
 
     }
 
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the query builder by applying the specified node joins and expand-as-array logic.
+     *
+     * @param Builder $objBuilder The query builder to be updated.
+     * @return void
+     * @throws Caller
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         if ($this->objNode instanceof Node\Association) {
             // The below works because all code generated association nodes will have a _ChildTableNode parameter.
@@ -74,7 +85,12 @@ class ExpandAsArray extends ObjectBase implements ClauseInterface
         $objBuilder->addExpandAsArrayNode($this->objNode);
     }
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
         return 'ExpandAsArray Clause';
     }

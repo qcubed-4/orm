@@ -11,82 +11,92 @@ namespace QCubed\Codegen;
 
 use QCubed\Database;
 use QCubed\Exception\Caller;
+use Exception;
+use QCubed\Exception\InvalidCast;
 use QCubed\Type;
-use QCubed\Project\Codegen\CodegenBase as QCodegen;
-
-//require_once QCUBED_PROJECT_DIR . '/qcubed/codegen/CodegenBase.php';
+use QCubed\Database\ForeignKey;
+use QCubed\project\Codegen\CodegenBase as QCodegen;
+use SimpleXmlElement;
 
 /**
- * Class DatabaseCodeGen
- * @package QCubed\Codegen
- * @was QDatabaseCodeGen
+ * @property array $TableArray Array of ORM tables
+ * @property array $TypeTableArray Array of Type tables
  */
+
 class DatabaseCodeGen extends QCodegen
 {
-    public $objSettingsXml;    // Make public so templates can use it directly.
+    public SimpleXmlElement $objSettingsXml;    // Make public so templates can use it directly.
 
     // Objects
     /** @var array|SqlTable[] Array of tables in the database */
-    protected $objTableArray;
-    protected $strExcludedTableArray;
-    protected $objTypeTableArray;
-    protected $strAssociationTableNameArray;
-    /** @var Database\DatabaseBase The database we are dealing with */
-    protected $objDb;
+    protected array $objTableArray = [];
+    /** @var array|SqlTable[] Array of tables in the database */
+    protected  array $strExcludedTableArray = [];
+    /** @var array|SqlTable[] Array of tables in the database */
+    protected array $objTypeTableArray = [];
+    /** @var array|SqlTable[] Array of tables in the database */
+    protected array $strAssociationTableNameArray = [];
 
-    protected $intDatabaseIndex;
+    /** @var Database\DatabaseBase The database we are dealing with */
+    protected Database\DatabaseBase $objDb;
+
+    protected int $intDatabaseIndex;
     /** @var string The delimiter to be used for parsing comments on the DB tables for being used as the name of ModelConnector's Label */
-    protected $strCommentConnectorLabelDelimiter;
+    protected string $strCommentConnectorLabelDelimiter;
+    protected string $strErrors = '';
 
     // Table Suffixes
-    protected $strTypeTableSuffixArray;
-    protected $intTypeTableSuffixLengthArray;
-    protected $strAssociationTableSuffix;
-    protected $intAssociationTableSuffixLength;
+    protected array $strTypeTableSuffixArray;
+    protected array $intTypeTableSuffixLengthArray;
+    protected string $strAssociationTableSuffix;
+    protected int $intAssociationTableSuffixLength;
 
     // Table Prefix
-    protected $strStripTablePrefix;
-    protected $intStripTablePrefixLength;
+    protected mixed $strStripTablePrefix;
+    protected int $intStripTablePrefixLength;
 
     // Exclude Patterns & Lists
-    protected $strExcludePattern;
-    protected $strExcludeListArray;
+    protected mixed $strExcludePattern;
+    protected array $strExcludeListArray;
 
     // Include Patterns & Lists
-    protected $strIncludePattern;
-    protected $strIncludeListArray;
+    protected mixed $strIncludePattern;
+    protected array $strIncludeListArray;
 
     // Uniquely Associated Objects
-    protected $strAssociatedObjectPrefix;
-    protected $strAssociatedObjectSuffix;
+    protected string $strAssociatedObjectPrefix;
+    protected string $strAssociatedObjectSuffix;
 
     // Relationship Scripts
-    protected $strRelationships;
-    protected $blnRelationshipsIgnoreCase;
+    protected mixed $strRelationships;
+    protected bool $blnRelationshipsIgnoreCase;
 
-    protected $strRelationshipsScriptPath;
-    protected $strRelationshipsScriptFormat;
-    protected $blnRelationshipsScriptIgnoreCase;
+    protected mixed $strRelationshipsScriptPath;
+    protected mixed $strRelationshipsScriptFormat;
+    protected bool $blnRelationshipsScriptIgnoreCase;
 
-    protected $strRelationshipLinesQcubed = array();
-    protected $strRelationshipLinesSql = array();
+    protected array $strRelationshipLinesQcubed = array();
+    protected array $strRelationshipLinesSql = array();
 
     // Type Table Items, Table Name and Column Name RegExp Patterns
-    protected $strPatternTableName = '[[:alpha:]_][[:alnum:]_]*';
-    protected $strPatternColumnName = '[[:alpha:]_][[:alnum:]_]*';
-    protected $strPatternKeyName = '[[:alpha:]_][[:alnum:]_]*';
+    protected string $strPatternTableName = '[[:alpha:]_][[:alnum:]_]*';
+    protected string $strPatternColumnName = '[[:alpha:]_][[:alnum:]_]*';
+    protected string $strPatternKeyName = '[[:alpha:]_][[:alnum:]_]*';
 
-    protected $blnGenerateControlId;
-    protected $objModelConnectorOptions;
-    protected $blnAutoInitialize;
-    protected $blnPrivateColumnVars;
+    protected mixed $blnGenerateControlId;
+    protected OptionFile $objModelConnectorOptions;
+    protected mixed $blnAutoInitialize;
+    protected mixed $blnPrivateColumnVars;
+
 
     /**
-     * @param $strTableName
-     * @return SqlTable|TypeTable
-     * @throws Caller
+     * Retrieves the specified table by its name.
+     *
+     * @param string $strTableName The name of the table to retrieve.
+     * @return SqlTable|TypeTable The table object if it exists in the available table arrays.
+     * @throws Caller If the table does not exist or cannot be processed.
      */
-    public function getTable($strTableName)
+    public function getTable(string $strTableName): SqlTable|TypeTable
     {
         $strTableName = strtolower($strTableName);
         if (array_key_exists($strTableName, $this->objTableArray)) {
@@ -94,12 +104,20 @@ class DatabaseCodeGen extends QCodegen
         }
         if (array_key_exists($strTableName, $this->objTypeTableArray)) {
             return $this->objTypeTableArray[$strTableName];
-        };    // deal with table special
-        throw new Caller(sprintf('Table does not exist or could not be processed: %s. %s', $strTableName,
+        }
+        throw new Caller(sprintf('The Table does not exist or could not be processed: %s. %s', $strTableName,
             $this->strErrors));
     }
 
-    public function getColumn($strTableName, $strColumnName)
+    /**
+     * Retrieves the specified column from the given table.
+     *
+     * @param string $strTableName The name of the table from which the column is to be retrieved.
+     * @param string $strColumnName The name of the column to retrieve.
+     * @return mixed The column object if it exists in the specified table.
+     * @throws Caller If the table does not exist, or the column does not exist within the table.
+     */
+    public function getColumn(string $strTableName, string $strColumnName): mixed
     {
         try {
             $objTable = $this->getTable($strTableName);
@@ -115,14 +133,14 @@ class DatabaseCodeGen extends QCodegen
     }
 
     /**
-     * Given a CASE INSENSITIVE table and column name, it will return TRUE if the Table/Column
+     * Given a CASE-INSENSITIVE table and column name, it will return TRUE if the Table/Column
      * exists ANYWHERE in the already analyzed database
      *
      * @param string $strTableName
      * @param string $strColumnName
      * @return boolean true if it is found/validated
      */
-    public function validateTableColumn($strTableName, $strColumnName)
+    public function validateTableColumn(string $strTableName, string $strColumnName): bool
     {
         $strTableName = trim(strtolower($strTableName));
         $strColumnName = trim(strtolower($strColumnName));
@@ -152,7 +170,7 @@ class DatabaseCodeGen extends QCodegen
         return false;
     }
 
-    public function getTitle()
+    public function getTitle(): string
     {
         if (!Database\Service::isInitialized()) {
             return '';
@@ -168,7 +186,7 @@ class DatabaseCodeGen extends QCodegen
         }
     }
 
-    public function getConfigXml()
+    public function getConfigXml(): string
     {
         $strCrLf = "\r\n";
         $strToReturn = sprintf('		<database index="%s">%s', $this->intDatabaseIndex, $strCrLf);
@@ -197,7 +215,7 @@ class DatabaseCodeGen extends QCodegen
         return $strToReturn;
     }
 
-    public function getReportLabel()
+    public function getReportLabel(): string
     {
         // Setup Report Label
         $intTotalTableCount = count($this->objTableArray) + count($this->objTypeTableArray);
@@ -214,7 +232,11 @@ class DatabaseCodeGen extends QCodegen
         return $strReportLabel;
     }
 
-    public function generateAll()
+    /**
+     * @throws Caller
+     * @throws InvalidCast
+     */
+    public function generateAll(): string
     {
         $strReport = '';
 
@@ -234,10 +256,10 @@ class DatabaseCodeGen extends QCodegen
                             $strCount = sprintf('(with %s relationships)', $intCount);
                         }
                     }
-                    $strReport .= sprintf("Successfully generated DB ORM Class:   %s %s\r\n", $objTable->ClassName,
+                    $strReport .= sprintf("A successfully generated DB ORM Class:   %s %s\r\n", $objTable->ClassName,
                         $strCount);
                 } else {
-                    $strReport .= sprintf("FAILED to generate DB ORM Class:       %s\r\n", $objTable->ClassName);
+                    $strReport .= sprintf("FAILED to generate a DB ORM Class:       %s\r\n", $objTable->ClassName);
                 }
             }
         }
@@ -246,7 +268,7 @@ class DatabaseCodeGen extends QCodegen
         if ($this->objTypeTableArray) {
             foreach ($this->objTypeTableArray as $objTypeTable) {
                 if ($this->generateTypeTable($objTypeTable)) {
-                    $strReport .= sprintf("Successfully generated DB Type Class:  %s\n", $objTypeTable->ClassName);
+                    $strReport .= sprintf("A successfully generated DB Type Class:  %s\n", $objTypeTable->ClassName);
                 } else {
                     $strReport .= sprintf("FAILED to generate DB Type class:      %s\n", $objTypeTable->ClassName);
                 }
@@ -259,8 +281,10 @@ class DatabaseCodeGen extends QCodegen
     /**
      * @param DatabaseCodeGen[] $objCodeGenArray
      * @return array
+     * @throws Caller
+     * @throws InvalidCast
      */
-    public static function generateAggregateHelper(array $objCodeGenArray)
+    public static function generateAggregateHelper(array $objCodeGenArray): array
     {
         $strToReturn = array();
 
@@ -301,10 +325,17 @@ class DatabaseCodeGen extends QCodegen
         return $strToReturn;
     }
 
-    public function __construct($objSettingsXml)
+    /**
+     * Constructor for initializing the CodeGen settings and processing related configurations.
+     *
+     * @param mixed $objSettingsXml The XML settings object that contains configuration details for code generation.
+     * @return void
+     * @throws Exception If there are critical errors in the provided settings, such as invalid or missing required information.
+     */
+    public function __construct(object $objSettingsXml)
     {
         parent::__construct($objSettingsXml);
-        // Make settings file accessible to templates
+        // Make a settings file accessible to templates
         //$this->objSettingsXml = $objSettingsXml;
 
         // Setup Local Arrays
@@ -314,7 +345,7 @@ class DatabaseCodeGen extends QCodegen
         $this->strExcludedTableArray = array();
 
         // Set the DatabaseIndex
-        $this->intDatabaseIndex = static::lookupSetting($objSettingsXml, null, 'index', Type::INTEGER);
+        $this->intDatabaseIndex = static::lookupSetting($objSettingsXml, '', 'index', Type::INTEGER);
 
         // Append Suffix/Prefixes
         $this->strClassPrefix = static::lookupSetting($objSettingsXml, 'className', 'prefix');
@@ -372,9 +403,9 @@ class DatabaseCodeGen extends QCodegen
 
                     if (($strLine) &&
                         (strlen($strLine) > 2) &&
-                        (substr($strLine, 0, 2) != '//') &&
-                        (substr($strLine, 0, 2) != '--') &&
-                        (substr($strLine, 0, 1) != '#')
+                        (!str_starts_with($strLine, '//')) &&
+                        (!str_starts_with($strLine, '--')) &&
+                        (!str_starts_with($strLine, '#'))
                     ) {
                         $this->strRelationshipLinesQcubed[$strLine] = $strLine;
                     }
@@ -397,9 +428,9 @@ class DatabaseCodeGen extends QCodegen
 
                                 if (($strLine) &&
                                     (strlen($strLine) > 2) &&
-                                    (substr($strLine, 0, 2) != '//') &&
-                                    (substr($strLine, 0, 2) != '--') &&
-                                    (substr($strLine, 0, 1) != '#')
+                                    (!str_starts_with($strLine, '//')) &&
+                                    (!str_starts_with($strLine, '--')) &&
+                                    (!str_starts_with($strLine, '#'))
                                 ) {
                                     $this->strRelationshipLinesQcubed[$strLine] = $strLine;
                                 }
@@ -421,9 +452,9 @@ class DatabaseCodeGen extends QCodegen
                                     foreach ($strLines as $strLine) {
                                         $strLine = trim($strLine);
                                         if (($strLine) &&
-                                            (substr($strLine, 0, 2) != '//') &&
-                                            (substr($strLine, 0, 2) != '--') &&
-                                            (substr($strLine, 0, 1) != '#')
+                                            (!str_starts_with($strLine, '//')) &&
+                                            (!str_starts_with($strLine, '--')) &&
+                                            (!str_starts_with($strLine, '#'))
                                         ) {
                                             $strLine = str_replace('	', ' ', $strLine);
                                             $strLine = str_replace('        ', ' ', $strLine);
@@ -443,8 +474,8 @@ class DatabaseCodeGen extends QCodegen
                                     }
 
                                     $strCommand = trim($strCommand);
-                                    if ((strpos($strCommand, 'alter table') === 0) &&
-                                        (strpos($strCommand, 'foreign key') !== false)
+                                    if ((str_starts_with($strCommand, 'alter table')) &&
+                                        (str_contains($strCommand, 'foreign key'))
                                     ) {
                                         $this->strRelationshipLinesSql[$strCommand] = $strCommand;
                                     }
@@ -477,7 +508,20 @@ class DatabaseCodeGen extends QCodegen
         $this->analyzeDatabase();
     }
 
-    protected function analyzeDatabase()
+    /**
+     * Analyzes the database configuration, tables, and relationships.
+     *
+     * This method retrieves the database configuration and ensures it is valid. It categorizes tables
+     * into type tables, association tables, and regular tables based on specific naming conventions
+     * and suffixes. Each category of tables is processed accordingly to extract relevant metadata.
+     * Type tables and relationships between tables are analyzed to identify invalid configurations
+     * or issues in the database schema. Warnings are generated for invalid foreign keys or
+     * non-compliant relationships.
+     *
+     * @return void
+     * @throws Caller
+     */
+    protected function analyzeDatabase(): void
     {
         if (!Database\Service::count()) {
             $this->strErrors = 'FATAL ERROR: No databases are listed in the configuration file. Edit the /project/includes/configuration/active/databases.cfg.php file';
@@ -488,14 +532,14 @@ class DatabaseCodeGen extends QCodegen
         $this->objDb = Database\Service::getDatabase($this->intDatabaseIndex);
 
         // Ensure the DB Exists
-        if (!$this->objDb) {
+        if (!isset($this->objDb)) {
             $this->strErrors = 'FATAL ERROR: No database configured at index ' . $this->intDatabaseIndex . '. Check your configuration file.';
             return;
         }
 
-        // Ensure DB Profiling is DISABLED on this DB
+        // Ensure a DB Profiling is DISABLED on this DB
         if ($this->objDb->EnableProfiling) {
-            $this->strErrors = 'FATAL ERROR: Code generator cannot analyze the database at index ' . $this->intDatabaseIndex . ' while DB Profiling is enabled.';
+            $this->strErrors = 'FATAL ERROR: Code generator cannot analyze the database at index ' . $this->intDatabaseIndex . ' while n DB Profiling is enabled.';
             return;
         }
 
@@ -510,28 +554,22 @@ class DatabaseCodeGen extends QCodegen
                 // Do we Exclude this Table Name? (given includeTables and excludeTables)
                 // First check the lists of Excludes and the Exclude Patterns
                 if (in_array($strTableName, $this->strExcludeListArray) ||
-                    (strlen($this->strExcludePattern) > 0 && preg_match(":" . $this->strExcludePattern . ":i",
-                            $strTableName))
+                    (strlen($this->strExcludePattern) > 0 && preg_match(":" . $this->strExcludePattern . ":i", $strTableName))
                 ) {
-
                     // So we THINK we may be excluding this table
                     // But check against the explicit INCLUDE list and patterns
-                    if (in_array($strTableName, $this->strIncludeListArray) ||
-                        (strlen($this->strIncludePattern) > 0 && preg_match(":" . $this->strIncludePattern . ":i",
-                                $strTableName))
+                    if (!in_array($strTableName, $this->strIncludeListArray) && (strlen($this->strIncludePattern) <= 0 ||
+                            !preg_match(":" . $this->strIncludePattern . ":i", $strTableName))
                     ) {
-                        // If we're here, we explicitly want to include this table
-                        // Therefore, do nothing
-                    } else {
                         // If we're here, then we want to exclude this table
                         $this->strExcludedTableArray[strtolower($strTableName)] = true;
 
                         // Exit this iteration of the foreach loop
-                        continue;
                     }
+                    continue;
                 }
 
-                // Check to see if this table name exists anywhere else yet, and warn if it is
+                // Check to see if this table name exists anywhere else yet and warn if it is
                 foreach (static::$CodeGenArray as $objCodeGen) {
                     if ($objCodeGen instanceof DatabaseCodeGen) {
                         foreach ($objCodeGen->objTableArray as $objPossibleDuplicate) {
@@ -551,7 +589,7 @@ class DatabaseCodeGen extends QCodegen
                         (substr($strTableName,
                                 strlen($strTableName) - $intTypeTableSuffixLength) == $this->strTypeTableSuffixArray[$intIndex])
                     ) {
-                        // Let's mark, that we have type table
+                        // Let's mark that we have a type table
                         $blnIsTypeTable = true;
                         // Create a TYPE Table and add it to the array
                         $objTypeTable = new TypeTable($strTableName);
@@ -562,7 +600,7 @@ class DatabaseCodeGen extends QCodegen
                     }
                 }
                 if (!$blnIsTypeTable) {
-                    // If current table wasn't type table, let's look for other table types
+                    // If the current table wasn't a type table, let's look for other table types
                     if (($this->intAssociationTableSuffixLength) &&
                         (strlen($strTableName) > $this->intAssociationTableSuffixLength) &&
                         (substr($strTableName,
@@ -604,7 +642,7 @@ class DatabaseCodeGen extends QCodegen
             }
         }
 
-        // Finally, for each Relationship in all Tables, Warn on Non Single Column PK based FK:
+        // Finally, for each Relationship in all Tables, Warn on Non-Single Column PK-based FK:
         if ($this->objTableArray) {
             foreach ($this->objTableArray as $objTable) {
                 if ($objTable->ColumnArray) {
@@ -634,46 +672,83 @@ class DatabaseCodeGen extends QCodegen
         }
     }
 
-    protected function listOfColumnsFromTable(SqlTable $objTable)
+    /**
+     * Retrieves a comma-separated string of column names from the given table.
+     *
+     * @param SqlTable $objTable The table object from which to extract the list of column names.
+     * @return string A comma-separated string containing the names of all columns in the specified table.
+     */
+    protected function listOfColumnsFromTable(SqlTable $objTable): string
     {
         $strArray = array();
         $objColumnArray = $objTable->ColumnArray;
         if ($objColumnArray) {
             foreach ($objColumnArray as $objColumn) {
-                array_push($strArray, $objColumn->Name);
+                $strArray[] = $objColumn->Name;
             }
         }
         return implode(', ', $strArray);
     }
 
-    protected function getColumnArray(SqlTable $objTable, $strColumnNameArray)
+    /**
+     * Retrieves an array of specified columns from the given table.
+     *
+     * @param SqlTable $objTable The table object from which the columns are to be retrieved.
+     * @param array|null $strColumnNameArray An array of column names to retrieve. If null, no columns are retrieved.
+     * @return array An array containing the requested columns from the table.
+     */
+    protected function getColumnArray(SqlTable $objTable, ?array $strColumnNameArray): array
     {
         $objToReturn = array();
 
         if ($strColumnNameArray) {
             foreach ($strColumnNameArray as $strColumnName) {
-                array_push($objToReturn, $objTable->ColumnArray[strtolower($strColumnName)]);
+                $objToReturn[] = $objTable->ColumnArray[strtolower($strColumnName)];
             }
         }
 
         return $objToReturn;
     }
 
-    public function generateTable(SqlTable $objTable)
+    /**
+     * Generates the necessary files for the specified SQL table.
+     *
+     * @param SqlTable $objTable The SQL table for which the files are to be generated.
+     * @return bool The result of the file generation process.
+     * @throws Caller
+     * @throws InvalidCast
+     */
+    public function generateTable(SqlTable $objTable): bool
     {
         // Create Argument Array
         $mixArgumentArray = array('objTable' => $objTable);
         return $this->generateFiles('db_orm', $mixArgumentArray);
     }
 
-    public function generateTypeTable(TypeTable $objTypeTable)
+    /**
+     * Generates files for the specified type table.
+     *
+     * @param TypeTable $objTypeTable The type table instance for which files are to be generated.
+     * @return bool The result of the file generation process.
+     * @throws Caller
+     * @throws InvalidCast
+     */
+    public function generateTypeTable(TypeTable $objTypeTable): bool
     {
         // Create Argument Array
         $mixArgumentArray = array('objTypeTable' => $objTypeTable);
         return $this->generateFiles('db_type', $mixArgumentArray);
     }
 
-    protected function analyzeAssociationTable($strTableName)
+    /**
+     * Analyzes an association table to verify its structure, foreign keys, and many-to-many relationships.
+     *
+     * @param string $strTableName The name of the table being analyzed for association relationships.
+     * @return void
+     * @throws Caller
+     * @throws Exception
+     */
+    protected function analyzeAssociationTable(string $strTableName): void
     {
         $objFieldArray = $this->objDb->getFieldsForTable($strTableName);
 
@@ -697,14 +772,14 @@ class DatabaseCodeGen extends QCodegen
             (($objFieldArray[0]->PrimaryKey) &&
                 (!$objFieldArray[1]->PrimaryKey))
         ) {
-            $this->strErrors .= sprintf("AssociationTable %s only support two-column composite Primary Keys.\n",
+            $this->strErrors .= sprintf("AssociationTable %s only supports two-column composite Primary Keys.\n",
                 $strTableName);
             return;
         }
 
         $objForeignKeyArray = $this->objDb->getForeignKeysForTable($strTableName);
 
-        // Add to it, the list of Foreign Keys from any Relationships Script
+        // Adds to it, the list of Foreign Keys from any Relationships Script
         $objForeignKeyArray = $this->getForeignKeysFromRelationshipsScript($strTableName, $objForeignKeyArray);
 
         if (count($objForeignKeyArray) != 2) {
@@ -732,7 +807,7 @@ class DatabaseCodeGen extends QCodegen
             $strGraphPrefixArray = array('', '');
         }
 
-        // Go through each FK and setup each ManyToManyReference object
+        // Go through each FK and set up each ManyToManyReference object
         for ($intIndex = 0; $intIndex < 2; $intIndex++) {
             $objManyToManyReference = $objManyToManyReferenceArray[$intIndex];
 
@@ -755,7 +830,7 @@ class DatabaseCodeGen extends QCodegen
 
             // Calculate OppositeColumnVariableName
             // Do this by first making a fake column which is the PK column of the AssociatedTable,
-            // but who's column name is ManyToManyReference->Column
+            // but whose column name is ManyToManyReference->Column
 //				$objOppositeColumn = clone($this->objTableArray[strtolower($objManyToManyReference->AssociatedTable)]->PrimaryKeyColumnArray[0]);
 
             $objTable = $this->getTable($objManyToManyReference->AssociatedTable);
@@ -821,21 +896,30 @@ class DatabaseCodeGen extends QCodegen
 
             $objTable = $this->getTable($strTableWithReference);
             $objArray = $objTable->ManyToManyReferenceArray;
-            array_push($objArray, $objManyToManyReference);
+            $objArray[] = $objManyToManyReference;
             $objTable->ManyToManyReferenceArray = $objArray;
         }
 
     }
 
-    protected function analyzeTypeTable(TypeTable $objTypeTable)
+    /**
+     * Analyzes the structure and data of a type table to validate its format and extract its metadata.
+     *
+     * @param TypeTable $objTypeTable The type table object to analyze, which includes properties for its structure and metadata.
+     * @return void This method does not return a value; it modifies the provided type table object directly and updates its metadata.
+     * @throws Caller
+     * @throws InvalidCast
+     * @throws Exception
+     */
+    protected function analyzeTypeTable(TypeTable $objTypeTable): void
     {
-        // Setup the Array of Reserved Words
+        // Set up the Array of Reserved Words
         $strReservedWords = explode(',', static::PHP_RESERVED_WORDS);
         for ($intIndex = 0; $intIndex < count($strReservedWords); $intIndex++) {
             $strReservedWords[$intIndex] = strtolower(trim($strReservedWords[$intIndex]));
         }
 
-        // Setup the Type Table Object
+        // Set up a type table object
         $strTableName = $objTypeTable->Name;
         $objTypeTable->ClassName = $this->modelClassName($strTableName);
 
@@ -872,7 +956,7 @@ class DatabaseCodeGen extends QCodegen
 
             $strNameArray[$id] = str_replace("'", "\\'", str_replace('\\', '\\\\', $name));
             $strTokenArray[$id] = $this->typeTokenFromTypeName($name);
-            if ($intRowWidth > 2) { // there are extra columns to process
+            if ($intRowWidth > 2) { // there are extra columns to the process
                 $strExtraPropertyArray[$id] = array();
                 for ($i = 2; $i < $intRowWidth; $i++) {
                     $strFieldName = static::typeColumnPropertyName($objFieldArray[$i]->Name);
@@ -880,7 +964,7 @@ class DatabaseCodeGen extends QCodegen
                     $extraFields[$i - 2]['type'] = $this->variableTypeFromDbType($objFieldArray[$i]->Type);
                     $extraFields[$i - 2]['nullAllowed'] = !$objFieldArray[$i]->NotNull;
 
-                    // Get and resolve type based value
+                    // Get and resolve type-based value
                     $value = $objDbRow->getColumn($objFieldArray[$i]->Name, $objFieldArray[$i]->Type);
                     $strExtraPropertyArray[$id][$strFieldName] = $value;
                 }
@@ -888,7 +972,7 @@ class DatabaseCodeGen extends QCodegen
 
             foreach ($strReservedWords as $strReservedWord) {
                 if (trim(strtolower($strTokenArray[$id])) == $strReservedWord) {
-                    $this->strErrors .= sprintf("Warning: TypeTable %s contains a type name which is a reserved word: %s.  Appended _ to the beginning of it.\r\n",
+                    $this->strErrors .= sprintf("Warning: TypeTable %s contains a type name, which is a reserved word: %s. Appended _ to the beginning of it.\r\n",
                         $strTableName, $strReservedWord);
                     $strTokenArray[$id] = '_' . $strTokenArray[$id];
                 }
@@ -912,9 +996,17 @@ class DatabaseCodeGen extends QCodegen
         $objTypeTable->KeyColumn = $objColumn;
     }
 
-    protected function analyzeTable(SqlTable $objTable)
+    /**
+     * Analyzes the structure of a given SQL table and populates its metadata, including columns, indexes, and foreign keys.
+     *
+     * @param SqlTable $objTable The table objects to be analyzed and populated with metadata, including its columns, indexes, and relationships.
+     * @return void
+     * @throws Caller
+     * @throws Exception
+     */
+    protected function analyzeTable(SqlTable $objTable): void
     {
-        // Setup the Table Object
+        // Set up the Table Object
         $objTable->OwnerDbIndex = $this->intDatabaseIndex;
         $strTableName = $objTable->Name;
         $objTable->ClassName = $this->modelClassName($strTableName);
@@ -964,7 +1056,7 @@ class DatabaseCodeGen extends QCodegen
         foreach ($objColumnArray as $objColumn) {
             if ($objColumn->PrimaryKey) {
                 $objPkColumn = $objColumn;
-                array_push($strPrimaryKeyArray, $objColumn->Name);
+                $strPrimaryKeyArray[] = $objColumn->Name;
             }
         }
         if (!empty($objPkColumn)) {
@@ -973,7 +1065,7 @@ class DatabaseCodeGen extends QCodegen
             $objIndex->PrimaryKey = true;
             $objIndex->Unique = true;
             $objIndex->ColumnNameArray = $strPrimaryKeyArray;
-            array_push($objIndexArray, $objIndex);
+            $objIndexArray[] = $objIndex;
 
             if (count($strPrimaryKeyArray) == 1) {
                 $objPkColumn->Unique = true;
@@ -981,7 +1073,7 @@ class DatabaseCodeGen extends QCodegen
             }
         }
 
-        // Iterate though each Index that exists in this table, set any Columns's "Index" property
+        // Iterate though each Index that exists in this table set any Column's "Index" property
         // to TRUE if they are a single-column index
         if ($objTable->IndexArray) {
             foreach ($objArray = $objTable->IndexArray as $objDatabaseIndex) {
@@ -996,11 +1088,16 @@ class DatabaseCodeGen extends QCodegen
                         if (array_key_exists(strtolower($strColumnName), $objTable->ColumnArray) &&
                             ($objTable->ColumnArray[strtolower($strColumnName)])
                         ) {
-                            // It exists -- do nothing
+                            // The condition is true - we continue with the next iteration.
+                            continue;
                         } else {
-                            // Otherwise, add a warning
-                            $this->strErrors .= sprintf("Index %s in table %s indexes on the column %s, which does not appear to exist.\n",
-                                $objDatabaseIndex->KeyName, $strTableName, $strColumnName);
+                            // When we get here, we'll add an appropriate warning.
+                            $this->strErrors .= sprintf(
+                                "Index %s in a table %s indexes on the column %s, which does not appear to exist.\n",
+                                $objDatabaseIndex->KeyName,
+                                $strTableName,
+                                $strColumnName
+                            );
                             $blnFailed = true;
                         }
                     }
@@ -1030,7 +1127,7 @@ class DatabaseCodeGen extends QCodegen
                             $objIndex->ColumnNameArray = $objDatabaseIndex->ColumnNameArray;
 
                             // Add the new index object to the index array
-                            array_push($objIndexArray, $objIndex);
+                            $objIndexArray[] = $objIndex;
 
                             // Lastly, if it's a single-column index, update the Column in the table to reflect this
                             if (count($objDatabaseIndex->ColumnNameArray) == 1) {
@@ -1055,7 +1152,7 @@ class DatabaseCodeGen extends QCodegen
         // Get the List of Foreign Keys from the database
         $objForeignKeys = $this->objDb->getForeignKeysForTable($objTable->Name);
 
-        // Add to it, the list of Foreign Keys from any Relationships Script
+        // Adds to it, the list of Foreign Keys from any Relationships Script
         $objForeignKeys = $this->getForeignKeysFromRelationshipsScript($strTableName, $objForeignKeys);
 
         // Iterate through each foreign key that exists in this table
@@ -1064,7 +1161,7 @@ class DatabaseCodeGen extends QCodegen
 
                 // Make sure it's a single-column FK
                 if (count($objForeignKey->ColumnNameArray) != 1) {
-                    $this->strErrors .= sprintf("Foreign Key %s in table %s keys on multiple columns.  Multiple-columned FKs are not supported by the code generator.\n",
+                    $this->strErrors .= sprintf("Foreign Key %s in a table %s keys on multiple columns.  Multiple-columned FKs are not supported by the code generator.\n",
                         $objForeignKey->KeyName, $strTableName);
                 } else {
                     // Make sure the column in the FK definition actually exists in this table
@@ -1117,7 +1214,7 @@ class DatabaseCodeGen extends QCodegen
                             // Retrieve the Column object
                             $objColumn = $objTable->ColumnArray[strtolower($strColumnName)];
 
-                            // Setup Key Name
+                            // Set up Key Name
                             $objReference->KeyName = $objForeignKey->KeyName;
 
                             $strReferencedTableName = $objForeignKey->ReferenceTableName;
@@ -1136,7 +1233,7 @@ class DatabaseCodeGen extends QCodegen
                             // Setup VariableType
                             $objReference->VariableType = $this->modelClassName($strReferencedTableName);
 
-                            // Setup PropertyName and VariableName
+                            // Set up PropertyName and VariableName
                             $objReference->PropertyName = $this->modelReferencePropertyName($objColumn->Name);
                             $objReference->VariableName = $this->modelReferenceVariableName($objColumn->Name);
                             $objReference->Name = $this->modelReferenceColumnName($objColumn->Name);
@@ -1149,7 +1246,7 @@ class DatabaseCodeGen extends QCodegen
                                     $objReference->PropertyName) + $objColumn->Options;
 
 
-                            // STEP 2: Setup the REVERSE Reference for Non Type-based References
+                            // STEP 2: Set up the REVERSE Reference for Non Type-based References
                             if (!$objReference->IsType) {
                                 // Retrieve the ReferencedTable object
 //								$objReferencedTable = $this->objTableArray[strtolower($objReference->Table)];
@@ -1172,7 +1269,7 @@ class DatabaseCodeGen extends QCodegen
 
                                 // For Special Case ReverseReferences, calculate Associated MemberVariableName and PropertyName...
 
-                                // See if ReverseReference is due to an ORM-based Class Inheritence Chain
+                                // See if ReverseReference is due to an ORM-based Class Inheritance Chain
                                 if ((count($objTable->PrimaryKeyColumnArray) == 1) && ($objColumn->PrimaryKey)) {
                                     $objReverseReference->ObjectMemberVariable = static::prefixFromType(Type::OBJECT) . $objReverseReference->VariableType;
                                     $objReverseReference->ObjectPropertyName = $objReverseReference->VariableType;
@@ -1198,15 +1295,15 @@ class DatabaseCodeGen extends QCodegen
 
                                 // Add this ReverseReference to the referenced table's ReverseReferenceArray
                                 $objArray = $objReferencedTable->ReverseReferenceArray;
-                                array_push($objArray, $objReverseReference);
+                                $objArray[] = $objReverseReference;
                                 $objReferencedTable->ReverseReferenceArray = $objArray;
                             }
                         } else {
-                            $this->strErrors .= sprintf("Foreign Key %s in table %s references a table %s that does not appear to exist.\n",
+                            $this->strErrors .= sprintf("Foreign Key %s in a table %s references a table %s that do not appear to exist.\n",
                                 $objForeignKey->KeyName, $strTableName, $objForeignKey->ReferenceTableName);
                         }
                     } else {
-                        $this->strErrors .= sprintf("Foreign Key %s in table %s indexes on a column that does not appear to exist.\n",
+                        $this->strErrors .= sprintf("Foreign Key %s in a table %s indexes on a column that does not appear to exist.\n",
                             $objForeignKey->KeyName, $strTableName);
                     }
                 }
@@ -1218,7 +1315,7 @@ class DatabaseCodeGen extends QCodegen
         $strMatches = array();
         preg_match('/' . $this->strPatternTableName . '/', $strTableName, $strMatches);
         if (count($strMatches) && ($strMatches[0] == $strTableName) && ($strTableName != '_')) {
-            // Setup Reserved Words
+            // Set up Reserved Words
             $strReservedWords = explode(',', static::PHP_RESERVED_WORDS);
             for ($intIndex = 0; $intIndex < count($strReservedWords); $intIndex++) {
                 $strReservedWords[$intIndex] = strtolower(trim($strReservedWords[$intIndex]));
@@ -1246,10 +1343,17 @@ class DatabaseCodeGen extends QCodegen
             $strColumnName = $objColumn->Name;
             $strMatches = array();
             preg_match('/' . $this->strPatternColumnName . '/', $strColumnName, $strMatches);
+
             if (count($strMatches) && ($strMatches[0] == $strColumnName) && ($strColumnName != '_')) {
+                // If the column name is valid, we just continue with the next iteration.
+                continue;
             } else {
-                $this->strErrors .= sprintf("Table '%s' has an invalid column name: '%s'\r\n", $strTableName,
-                    $strColumnName);
+                // If the column name is invalid, we add an appropriate warning and remove the table.
+                $this->strErrors .= sprintf(
+                    "Table '%s' has an invalid column name: '%s'\r\n",
+                    $strTableName,
+                    $strColumnName
+                );
                 unset($this->objTableArray[strtolower($strTableName)]);
                 return;
             }
@@ -1266,11 +1370,18 @@ class DatabaseCodeGen extends QCodegen
         if (!$blnFoundPk) {
             $this->strErrors .= sprintf("Table %s does not have any defined primary keys.\n", $strTableName);
             unset($this->objTableArray[strtolower($strTableName)]);
-            return;
         }
     }
 
-    protected function analyzeTableColumn(Database\FieldBase $objField, $objTable)
+    /**
+     * Analyzes a database table column and constructs a SqlColumn object representing its properties.
+     *
+     * @param Database\FieldBase $objField The database field object containing metadata about the column.
+     * @param mixed $objTable The table object the column belongs to.
+     * @return SqlColumn|null A SqlColumn object representing the analyzed column, or null if the column name is invalid.
+     * @throws InvalidCast
+     */
+    protected function analyzeTableColumn(Database\FieldBase $objField, mixed $objTable): ?SqlColumn
     {
         $objColumn = new SqlColumn();
         $objColumn->Name = $objField->Name;
@@ -1326,14 +1437,20 @@ class DatabaseCodeGen extends QCodegen
             }
         }
 
-        // merge with options found in the design editor, letting editor take precedence
+        // Combine with options found in the design editor, allowing the editor to take precedence
         $objColumn->Options = $this->objModelConnectorOptions->getOptions($objTable->ClassName,
                 $objColumn->PropertyName) + $objColumn->Options;
 
         return $objColumn;
     }
 
-    protected function stripPrefixFromTable($strTableName)
+    /**
+     * Removes the predefined prefix from the specified table name if the prefix exists and matches the conditions.
+     *
+     * @param string $strTableName The name of the table from which the prefix should be stripped.
+     * @return string|null The table name with the prefix removed, or the original table name if no applicable prefix is found.
+     */
+    protected function stripPrefixFromTable(string $strTableName): ?string
     {
         // If applicable, strip any StripTablePrefix from the table name
         if ($this->intStripTablePrefixLength &&
@@ -1347,7 +1464,16 @@ class DatabaseCodeGen extends QCodegen
         return $strTableName;
     }
 
-    protected function getForeignKeyForQcubedRelationshipDefinition($strTableName, $strLine)
+    /**
+     * Processes a relationship definition line for a QCubed script and extracts or creates a foreign key definition
+     * based on its table and column references.
+     *
+     * @param string $strTableName The name of the table for which the foreign key is being processed.
+     * @param string $strLine A line from the relationship definition script specifying source and destination table. Column mappings.
+     * @return ForeignKey|null The generated or resolved foreign key definition if valid, otherwise null.
+     * @throws Exception If errors occur during foreign key processing.
+     */
+    protected function getForeignKeyForQcubedRelationshipDefinition(string $strTableName, string $strLine): ?Database\ForeignKey
     {
         $strTokens = explode('=>', $strLine);
         if (count($strTokens) != 2) {
@@ -1383,7 +1509,14 @@ class DatabaseCodeGen extends QCodegen
         return null;
     }
 
-    protected function getForeignKeyForSqlRelationshipDefinition($strTableName, $strLine)
+    /**
+     * Extracts and processes foreign key information from an SQL relationship definition line.
+     *
+     * @param string $strTableName The name of the table for which the foreign key relationship is being parsed.
+     * @param string $strLine The line containing the SQL statement that defines the foreign key relationship.
+     * @return ForeignKey|null A foreign key helper object representing the parsed foreign key relationship, or null if the line is invalid or contains unsupported formats or multiple columns.
+     */
+    protected function getForeignKeyForSqlRelationshipDefinition(string $strTableName, string $strLine): ?ForeignKey
     {
         $strMatches = array();
 
@@ -1417,16 +1550,16 @@ class DatabaseCodeGen extends QCodegen
                 $strFkName = sprintf('virtualfk_%s_%s', $strTableName, $strColumnName);
             }
 
-            if ((strpos($strColumnName, ',') !== false) ||
-                (strpos($strReferenceColumnName, ',') !== false)
+            if ((str_contains($strColumnName, ',')) ||
+                (str_contains($strReferenceColumnName, ','))
             ) {
-                $this->strErrors .= sprintf("Relationships Script has a foreign key definition with multiple columns: %s (Multiple-columned FKs are not supported by the code generator)\r\n",
+                $this->strErrors .= sprintf("Relationship Script has a foreign key definition with multiple columns: %s (Multiple-columned FKs are not supported by the code generator)\r\n",
                     $strLine);
                 $this->strRelationshipLinesSql[$strLine] = null;
                 return null;
             }
 
-            // Cleanup strColumnName nad strreferenceColumnName
+            // Cleanup strColumnName nad preferenceColumnName
             $strColumnName = str_replace("'", '', $strColumnName);
             $strColumnName = str_replace('"', '', $strColumnName);
             $strColumnName = str_replace('[', '', $strColumnName);
@@ -1452,24 +1585,35 @@ class DatabaseCodeGen extends QCodegen
                     $strReferenceTableName, $strReferenceColumnName);
             }
 
-            return null;
         } else {
             $this->strErrors .= sprintf("Could not parse Relationships Script reference: %s (Not in ANSI SQL Format)\r\n",
                 $strLine);
             $this->strRelationshipLinesSql[$strLine] = null;
-            return null;
         }
+        return null;
     }
 
+    /**
+     * Creates a ForeignKey object after validating the existence of the specified tables and columns.
+     *
+     * @param string $strLine The line of input data being processed, typically from a script or configuration file.
+     * @param string $strFkName The name of the foreign key being created.
+     * @param string $strTableName The name of the table containing the foreign key column.
+     * @param string $strColumnName The name of the column in the table that is part of the foreign key.
+     * @param string $strReferencedTable The name of the table being referenced by the foreign key.
+     * @param string $strReferencedColumn The name of the column in the referenced table.
+     * @return Database\ForeignKey|null The ForeignKey object if validation succeeds, or null if any table or column validation fails.
+     */
     protected function getForeignKeyHelper(
-        $strLine,
-        $strFkName,
-        $strTableName,
-        $strColumnName,
-        $strReferencedTable,
-        $strReferencedColumn
-    ) {
-        // Make Sure Tables/Columns Exist, or display error otherwise
+        string $strLine,
+        string $strFkName,
+        string $strTableName,
+        string $strColumnName,
+        string $strReferencedTable,
+        string $strReferencedColumn
+    ): ?Database\ForeignKey
+    {
+        // Make Sure Tables/Columns Exist or display error otherwise
         if (!$this->validateTableColumn($strTableName, $strColumnName)) {
             $this->strErrors .= sprintf("Could not parse Relationships Script reference: \"%s\" (\"%s.%s\" does not exist)\r\n",
                 $strLine, $strTableName, $strColumnName);
@@ -1493,18 +1637,19 @@ class DatabaseCodeGen extends QCodegen
      *
      * If no Relationships are defined, this method will simply exit making no changes.
      *
-     * @param string $strTableName Name of the table to pull foreign keys for
-     * @param Database\ForeignKey[] Array of currently found DB FK objects which will be appended to
-     * @return Database\ForeignKey[] Array of DB FK objects that were parsed out
+     * @param string $strTableName The name of the table for which to determine foreign keys.
+     * @param array $objForeignKeyArray The array to which the identified foreign keys will be appended.
+     * @return array The updated array containing all identified foreign keys for the specified table.
+     * @throws Exception
      */
-    protected function getForeignKeysFromRelationshipsScript($strTableName, $objForeignKeyArray)
+    protected function getForeignKeysFromRelationshipsScript(string $strTableName, array $objForeignKeyArray): array
     {
         foreach ($this->strRelationshipLinesQcubed as $strLine) {
             if ($strLine) {
                 $objForeignKey = $this->getForeignKeyForQcubedRelationshipDefinition($strTableName, $strLine);
 
                 if ($objForeignKey) {
-                    array_push($objForeignKeyArray, $objForeignKey);
+                    $objForeignKeyArray[] = $objForeignKey;
                     $this->strRelationshipLinesQcubed[$strLine] = null;
                 }
             }
@@ -1515,7 +1660,7 @@ class DatabaseCodeGen extends QCodegen
                 $objForeignKey = $this->getForeignKeyForSqlRelationshipDefinition($strTableName, $strLine);
 
                 if ($objForeignKey) {
-                    array_push($objForeignKeyArray, $objForeignKey);
+                    $objForeignKeyArray[] = $objForeignKey;
                     $this->strRelationshipLinesSql[$strLine] = null;
                 }
             }
@@ -1524,7 +1669,16 @@ class DatabaseCodeGen extends QCodegen
         return $objForeignKeyArray;
     }
 
-    public function generateControlId($objTable, $objColumn)
+    /**
+     * Generates a control ID based on the provided table and column.
+     *
+     * @param object $objTable The table object used in generating the control ID.
+     * @param ColumnInterface $objColumn The column object whose properties may influence the control ID.
+     * @return string|null The generated control ID if successful, or null if no ID is generated.
+     * @throws Caller
+     * @throws InvalidCast
+     */
+    public function generateControlId(object $objTable, ColumnInterface $objColumn): ?string
     {
         $strControlId = null;
         if (isset($objColumn->Options['ControlId'])) {
@@ -1541,59 +1695,41 @@ class DatabaseCodeGen extends QCodegen
         return $strControlId;
     }
 
-
     /**
-     * Returns a string that will cast a variable coming from the database into a php type.
+     * Returns a string that will cast a variable coming from the database into a PHP type.
      * Doing this in the template saves significant amounts of time over using Type::cast() or GetColumn.
-     * @param SqlColumn $objColumn
-     * @return string
-     * @throws \Exception
+     *
+     * @param SqlColumn $objColumn The database column for which a casting string is generated.
+     * @return string The string representing the casting operation.
+     * @throws Exception If the column has an unsupported or invalid database field type.
      */
-    public function getCastString(SqlColumn $objColumn)
+    public function getCastString(SqlColumn $objColumn): string
     {
-        switch ($objColumn->DbType) {
-            case Database\FieldType::BIT:
-                return ('$mixVal = (bool)$mixVal;');
 
-            case Database\FieldType::BLOB:
-            case Database\FieldType::CHAR:
-            case Database\FieldType::VAR_CHAR:
-            case Database\FieldType::JSON:
-                return ''; // no need to cast, since its already a string or a null
 
-            case Database\FieldType::DATE:
-                return ('$mixVal = new \QCubed\QDateTime($mixVal, null, \QCubed\QDateTime::DATE_ONLY_TYPE);');
-
-            case Database\FieldType::DATE_TIME:
-                return ('$mixVal = new \QCubed\QDateTime($mixVal);');
-
-            case Database\FieldType::TIME:
-                return ('$mixVal = new \QCubed\QDateTime($mixVal, null, \QCubed\QDateTime::TIME_ONLY_TYPE);');
-
-            case Database\FieldType::FLOAT:
-            case Database\FieldType::INTEGER:
-                return ('$mixVal = (' . $objColumn->VariableType . ')$mixVal;');
-
-            default:
-                throw new \Exception ('Invalid database field type');
-        }
+        return match ($objColumn->DbType) {
+            Database\FieldType::BIT => ('$mixVal = (bool)$mixVal;'),
+            Database\FieldType::BLOB, Database\FieldType::CHAR, Database\FieldType::VAR_CHAR, Database\FieldType::JSON => '',
+            Database\FieldType::DATE => ('$mixVal = new QDateTime($mixVal, null, QDateTime::DATE_ONLY_TYPE);'),
+            Database\FieldType::DATE_TIME => ('$mixVal = new QDateTime($mixVal);'),
+            Database\FieldType::TIME => ('$mixVal = new QDateTime($mixVal, null, QDateTime::TIME_ONLY_TYPE);'),
+            Database\FieldType::FLOAT, Database\FieldType::INTEGER => ('$mixVal = (' . $objColumn->VariableType . ')$mixVal;'),
+            default => throw new Exception ('Invalid database field type'),
+        };
     }
-
-
 
     ////////////////////
     // Public Overriders
     ////////////////////
 
     /**
-     * Override method to perform a property "Get"
-     * This will get the value of $strName
+     * Magic method to retrieve properties of the class based on the provided name.
      *
-     * @param string $strName
-     * @return array|mixed|SqlTable[]|string
-     * @throws Caller
+     * @param string $strName The name of the property to retrieve.
+     * @return mixed The value of the requested property. May return various types depending on the property.
+     * @throws Caller If the property is deprecated or does not exist in the current class or parent class.
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'TableArray':
@@ -1621,24 +1757,30 @@ class DatabaseCodeGen extends QCodegen
     }
 
     /**
-     * @param string $strName
-     * @param string $mixValue
+     * Sets the value of a property dynamically.
+     *
+     * @param string $strName The name of the property to set.
+     * @param mixed $mixValue The value to assign to the specified property.
      * @return void
+     * @throws Exception
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         try {
-            switch ($strName) {
-                default:
-                    parent::__set($strName, $mixValue);
-            }
+            parent::__set($strName, $mixValue);
         } catch (Caller $objExc) {
             $objExc->incrementOffset();
         }
     }
 }
 
-function array_trim(&$strValue)
+/**
+ * Trims whitespace or other predefined characters from the beginning and end of a string variable.
+ *
+ * @param string &$strValue The string variable to be trimmed. The value is passed by reference and modified in place.
+ * @return void
+ */
+function array_trim(string &$strValue): void
 {
     $strValue = trim($strValue);
 }

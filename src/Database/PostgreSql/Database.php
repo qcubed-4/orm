@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 namespace QCubed\Database\PostgreSql;
@@ -25,7 +25,10 @@ namespace QCubed\Database\PostgreSql;
 use QCubed\Database\DatabaseBase;
 use QCubed\Database\ForeignKey;
 use QCubed\Database\Index;
+use QCubed\Database\Mysqli5\MysqliResult;
+use QCubed\Database\PostgreSql\PostgreResult;
 use QCubed\Exception\Caller;
+use Exception;
 use QCubed\QDateTime;
 
 /**
@@ -45,11 +48,11 @@ class Database extends DatabaseBase
 
     protected $objPgSql;
     protected $objMostRecentResult;
-    protected $blnOnlyFullGroupBy = true;
+    protected bool $blnOnlyFullGroupBy = true;
 
-    public function sqlVariable($mixData, $blnIncludeEquality = false, $blnReverseEquality = false)
+    public function sqlVariable(mixed $mixData, bool $blnIncludeEquality = false, bool $blnReverseEquality = false): string
     {
-        // Are we SqlVariabling a BOOLEAN value?
+        // Are we SqlRivalling a BOOLEAN value?
         if (is_bool($mixData)) {
             // Yes
             if ($blnIncludeEquality) {
@@ -141,25 +144,25 @@ class Database extends DatabaseBase
         return $strToReturn . sprintf("'%s'", pg_escape_string($mixData));
     }
 
-    public function sqlLimitVariablePrefix($strLimitInfo)
+    public function sqlLimitVariablePrefix(string $strLimitInfo): ?string
     {
         // PostgreSQL uses Limit by Suffixes (via a LIMIT clause)
         // Prefix is not used, therefore, return null
         return null;
     }
 
-    public function sqlLimitVariableSuffix($strLimitInfo)
+    public function sqlLimitVariableSuffix(string $strLimitInfo): ?string
     {
         // Setup limit suffix (if applicable) via a LIMIT clause
         if (strlen($strLimitInfo)) {
-            if (strpos($strLimitInfo, ';') !== false) {
-                throw new \Exception('Invalid Semicolon in LIMIT Info');
+            if (str_contains($strLimitInfo, ';')) {
+                throw new Exception('Invalid Semicolon in LIMIT Info');
             }
-            if (strpos($strLimitInfo, '`') !== false) {
-                throw new \Exception('Invalid Backtick in LIMIT Info');
+            if (str_contains($strLimitInfo, '`')) {
+                throw new Exception('Invalid Backtick in LIMIT Info');
             }
 
-            // First figure out if we HAVE an offset
+            // First, figure out if we HAVE an offset
             $strArray = explode(',', $strLimitInfo);
 
             if (count($strArray) == 2) {
@@ -169,7 +172,7 @@ class Database extends DatabaseBase
                 if (count($strArray) == 1) {
                     return sprintf('LIMIT %s', $strArray[0]);
                 } else {
-                    throw new \Exception('Invalid Limit Info: ' . $strLimitInfo, 0, null);
+                    throw new Exception('Invalid Limit Info: ' . $strLimitInfo, 0, null);
                 }
             }
         }
@@ -177,15 +180,24 @@ class Database extends DatabaseBase
         return null;
     }
 
-    public function sqlSortByVariable($strSortByInfo)
+    /**
+     * Generates and returns an SQL ORDER BY clause based on the provided sorting information.
+     *
+     * @param string $strSortByInfo The sorting information to construct the ORDER BY clause.
+     *                              It should not contain semicolons or backticks.
+     * @return string|null The generated SQL ORDER BY clause as a string, or null if no sorting
+     *               information is provided.
+     * @throws Exception If the sorting information contains invalid semicolons or backticks.
+     */
+    public function sqlSortByVariable(string $strSortByInfo): ?string
     {
-        // Setup sorting information (if applicable) via a ORDER BY clause
+        // Setup sorting information (if applicable) via an ORDER BY clause
         if (strlen($strSortByInfo)) {
-            if (strpos($strSortByInfo, ';') !== false) {
-                throw new \Exception('Invalid Semicolon in ORDER BY Info');
+            if (str_contains($strSortByInfo, ';')) {
+                throw new Exception('Invalid Semicolon in ORDER BY Info');
             }
-            if (strpos($strSortByInfo, '`') !== false) {
-                throw new \Exception('Invalid Backtick in ORDER BY Info');
+            if (str_contains($strSortByInfo, '`')) {
+                throw new Exception('Invalid Backtick in ORDER BY Info');
             }
 
             return "ORDER BY $strSortByInfo";
@@ -194,7 +206,7 @@ class Database extends DatabaseBase
         return null;
     }
 
-    public function insertOrUpdate($strTable, $mixColumnsAndValuesArray, $strPKNames = null)
+    public function insertOrUpdate(string $strTable, array $mixColumnsAndValuesArray, mixed $strPKNames = null): void
     {
         $strEscapedArray = $this->escapeIdentifiersAndValues($mixColumnsAndValuesArray);
         $strColumns = array_keys($strEscapedArray);
@@ -234,7 +246,7 @@ class Database extends DatabaseBase
             $this->executeNonQuery($strUpdateSql);
             $this->executeNonQuery($strInsertSql);
             $this->transactionCommit();
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $this->transactionRollback();
             throw $ex;
         }
@@ -245,7 +257,7 @@ class Database extends DatabaseBase
      *
      * @throws Exception
      */
-    public function connect()
+    public function connect(): void
     {
         // Lookup Adapter-Specific Connection Properties
         $strServer = $this->Server;
@@ -259,14 +271,14 @@ class Database extends DatabaseBase
             $strUsername, $strPassword, $strPort));
 
         if (!$this->objPgSql) {
-            throw new \Exception("Unable to connect to Database", -1, null);
+            throw new Exception("Unable to connect to Database", -1, null);
         }
 
         // Update Connected Flag
         $this->blnConnectedFlag = true;
     }
 
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'AffectedRows':
@@ -282,59 +294,60 @@ class Database extends DatabaseBase
     }
 
     /**
-     * @param string $strQuery
-     * @return Result
-     * @throws \Exception
+     * Executes a SQL query on the PostgreSQL connection.
+     *
+     * @param string $strQuery The SQL query to be executed.
+     * @return MysqliResult An object representing the result of the query.
+     * @throws Exception If the query fails or an error occurs.
      */
-    protected function executeQuery($strQuery)
+    protected function executeQuery(string $strQuery): MysqliResult
     {
         // Perform the Query
         $objResult = pg_query($this->objPgSql, $strQuery);
         if (!$objResult) {
-            throw new \Exception(pg_last_error(), 0, $strQuery);
+            throw new Exception(pg_last_error(), 0, $strQuery);
         }
 
         // Return the Result
         $this->objMostRecentResult = $objResult;
-        $objPgSqlDatabaseResult = new Result($objResult, $this);
-        return $objPgSqlDatabaseResult;
+        return new PostgreResult($objResult, $this);
     }
 
-    /**
-     * @param string $strNonQuery
-     * @throws \Exception
-     * @return void
-     */
-    protected function executeNonQuery($strNonQuery)
+    protected function executeNonQuery(string $strNonQuery): MysqliResult
     {
         // Perform the Query
         $objResult = pg_query($this->objPgSql, $strNonQuery);
         if (!$objResult) {
-            throw new \Exception(pg_last_error(), 0, $strNonQuery);
+            throw new Exception(pg_last_error(), 0, $strNonQuery);
         }
         $this->objMostRecentResult = $objResult;
+        return new PostgreResult($objResult, $this);
     }
 
     /**
      * Returns the list of tables in the database as string
      *
      * @return array List of tables in the database as string
+     * @throws Caller
      */
-    public function getTables()
+    public function getTables(): array
     {
         $objResult = $this->query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = current_schema() AND TABLE_TYPE = 'BASE TABLE' ORDER BY TABLE_NAME ASC");
         $strToReturn = array();
         while ($strRowArray = $objResult->fetchRow()) {
-            array_push($strToReturn, $strRowArray[0]);
+            $strToReturn[] = $strRowArray[0];
         }
         return $strToReturn;
     }
 
     /**
-     * @param string $strTableName
-     * @return array
+     * Retrieves the fields (columns) for a specified table from the database.
+     *
+     * @param string $strTableName Name of the table for which the fields are to be retrieved.
+     * @return array An array of Field objects representing the columns of the table.
+     * @throws Caller
      */
-    public function getFieldsForTable($strTableName)
+    public function getFieldsForTable(string $strTableName): array
     {
         $strTableName = $this->sqlVariable($strTableName);
         $strQuery = sprintf('
@@ -365,18 +378,19 @@ class Database extends DatabaseBase
         $objFields = array();
 
         while ($objRow = $objResult->getNextRow()) {
-            array_push($objFields, new Field($objRow, $this));
+            $objFields[] = new Field($objRow, $this);
         }
 
         return $objFields;
     }
 
     /**
-     * @param null $strTableName
-     * @param null $strColumnName
+     * @param string|null $strTableName
+     * @param string|null $strColumnName
      * @return mixed
+     * @throws Caller
      */
-    public function insertId($strTableName = null, $strColumnName = null)
+    public function insertId(?string $strTableName = null, ?string $strColumnName = null): mixed
     {
         $strQuery = sprintf('
 			SELECT currval(pg_get_serial_sequence(%s, %s))
@@ -387,7 +401,12 @@ class Database extends DatabaseBase
         return $objRow[0];
     }
 
-    public function close()
+    /**
+     * Closes the PostgreSQL connection and updates the connection status flag.
+     *
+     * @return void
+     */
+    public function close(): void
     {
         pg_close($this->objPgSql);
 
@@ -396,48 +415,62 @@ class Database extends DatabaseBase
     }
 
     /**
-     * Sends the 'BEGIN' command to the PostgreSQL server to start a transaction
+     * Starts a database transaction by executing a BEGIN statement.
+     *
+     * @return void
+     * @throws Caller
      */
-    protected function executeTransactionBegin()
+    protected function executeTransactionBegin(): void
     {
         $this->nonQuery('BEGIN;');
     }
 
     /**
-     * Sends the 'COMMIT' command to the PostgreSQL server to commit/end a transaction
+     * Executes a transaction commit by finalizing all modifications made during the transaction.
+     *
+     * @return void
+     * @throws Caller
      */
-    protected function executeTransactionCommit()
+    protected function executeTransactionCommit(): void
     {
         $this->nonQuery('COMMIT;');
     }
 
     /**
-     * Sends the 'ROLLBACK' command to the PostgreSQL server to revert a transaction
+     * Executes a rollback operation to revert the current database transaction,
+     * canceling all changes made during the transaction.
+     *
+     * @return void
+     * @throws Caller
      */
-    protected function executeTransactionRollBack()
+    protected function executeTransactionRollBack(): void
     {
         $this->nonQuery('ROLLBACK;');
     }
 
     /**
-     * @param $strKeyDefinition
-     * @return array
-     * @throws \Exception
+     * Parses a key definition string to extract and return an array of column names.
+     *
+     * @param string $strKeyDefinition The key definition string containing column names
+     *                                  enclosed in parentheses, separated by commas.
+     * @return string[] An array of column names extracted from the key definition.
+     * @throws Exception If the key definition string does not contain valid
+     *                   opening and closing parenthesis.
      */
-    private function parseColumnNameArrayFromKeyDefinition($strKeyDefinition)
+    private function parseColumnNameArrayFromKeyDefinition(string $strKeyDefinition): array
     {
         $strKeyDefinition = trim($strKeyDefinition);
 
         // Get rid of the opening "(" and the closing ")"
         $intPosition = strpos($strKeyDefinition, '(');
         if ($intPosition === false) {
-            throw new \Exception("Invalid Key Definition: $strKeyDefinition");
+            throw new Exception("Invalid Key Definition: $strKeyDefinition");
         }
         $strKeyDefinition = trim(substr($strKeyDefinition, $intPosition + 1));
 
         $intPosition = strpos($strKeyDefinition, ')');
         if ($intPosition === false) {
-            throw new \Exception("Invalid Key Definition: $strKeyDefinition");
+            throw new Exception("Invalid Key Definition: $strKeyDefinition");
         }
         $strKeyDefinition = trim(substr($strKeyDefinition, 0, $intPosition));
         $strKeyDefinition = str_replace(" ", "", $strKeyDefinition);
@@ -446,11 +479,11 @@ class Database extends DatabaseBase
         // TODO: Current method doesn't support key names with commas or parenthesis in them!
         $strToReturn = explode(',', $strKeyDefinition);
 
-        // Take out trailing and leading '"' character in each name (if applicable)
+        // Take out the trailing and leading '"' character in each name (if applicable)
         for ($intIndex = 0; $intIndex < count($strToReturn); $intIndex++) {
             $strColumn = $strToReturn[$intIndex];
 
-            if (substr($strColumn, 0, 1) == '"') {
+            if (str_starts_with($strColumn, '"')) {
                 $strColumn = substr($strColumn, 1, strpos($strColumn, '"', 1) - 1);
             }
 
@@ -460,7 +493,16 @@ class Database extends DatabaseBase
         return $strToReturn;
     }
 
-    public function getIndexesForTable($strTableName)
+    /**
+     * Retrieves the index information for a specified table, including primary keys, unique constraints,
+     * and associated column names.
+     *
+     * @param string $strTableName The name of the table for which index information is to be retrieved.
+     * @return Index[] An array of Index objects, each representing an index on the specified table,
+     *                 including its name, primary/unique status, and associated columns.
+     * @throws Caller
+     */
+    public function getIndexesForTable(string $strTableName): array
     {
         $objIndexArray = array();
 
@@ -494,17 +536,21 @@ class Database extends DatabaseBase
             $strColumnNameArray = $this->parseColumnNameArrayFromKeyDefinition($strIndexDefinition);
 
             $objIndex = new Index($strKeyName, $blnPrimaryKey, $blnUnique, $strColumnNameArray);
-            array_push($objIndexArray, $objIndex);
+            $objIndexArray[] = $objIndex;
         }
 
         return $objIndexArray;
     }
 
     /**
-     * @param string $strTableName
-     * @return ForeignKey[]
+     * Retrieves the foreign keys for a specified table in the database.
+     *
+     * @param string $strTableName The name of the database table for which to fetch foreign keys.
+     * @return ForeignKey[] An array of ForeignKey objects representing the foreign key constraints
+     *                       associated with the specified table.
+     * @throws Caller
      */
-    public function getForeignKeysForTable($strTableName)
+    public function getForeignKeysForTable(string $strTableName): array
     {
         $objForeignKeyArray = array();
 
@@ -545,11 +591,11 @@ class Database extends DatabaseBase
             $strKeyName = $objRow->getColumn('conname');
 
             // Remove leading and trailing '"' characters (if applicable)
-            if (substr($strKeyName, 0, 1) == '"') {
+            if (str_starts_with($strKeyName, '"')) {
                 $strKeyName = substr($strKeyName, 1, strlen($strKeyName) - 2);
             }
 
-            // By the end of the following lines, we will end up with a strTokenArray
+            // By the end of the following lines, we will end up with strTokenArray
             // Index 1: the list of columns that are the foreign key
             // Index 2: the table which this FK references
             // Index 3: the list of columns which this FK references
@@ -562,7 +608,7 @@ class Database extends DatabaseBase
             $strTokenArray[2] = $strTokenArray[2][0];
 
             // Remove leading and trailing '"' characters (if applicable)
-            if (substr($strTokenArray[2], 0, 1) == '"') {
+            if (str_starts_with($strTokenArray[2], '"')) {
                 $strTokenArray[2] = substr($strTokenArray[2], 1, strlen($strTokenArray[2]) - 2);
             }
 
@@ -575,7 +621,7 @@ class Database extends DatabaseBase
                 $strColumnNameArray,
                 $strReferenceTableName,
                 $strReferenceColumnNameArray);
-            array_push($objForeignKeyArray, $objForeignKey);
+            $objForeignKeyArray[] = $objForeignKey;
         }
 
         // Return the Array of Foreign Keys
@@ -583,10 +629,14 @@ class Database extends DatabaseBase
     }
 
     /**
-     * @param $sql
-     * @return mixed
+     * Executes an EXPLAIN statement to retrieve execution details of a given SQL query.
+     *
+     * @param string $sql The SQL query to be analyzed with the EXPLAIN statement.
+     * @return MysqliResult|null The result of the EXPLAIN query execution, typically an
+     *               array or object depending on the query method implementation.
+     * @throws Caller
      */
-    public function explainStatement($sql)
+    public function explainStatement(string $sql): ?MysqliResult
     {
         return $this->query("EXPLAIN " . $sql);
     }

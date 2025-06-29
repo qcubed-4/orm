@@ -10,20 +10,20 @@
 namespace QCubed\Query\Node;
 
 use QCubed\Exception\Caller;
+use Exception;
 use QCubed\Type;
 
 /**
  * Class NoParentBase
- * Node that represents special asub queries that do not have parent nodes.
+ * Node that represents special sub queries that do not have parent nodes.
  * @package QCubed\Query\Node
- * @was QQNoParentNode
  */
 abstract class NoParentBase extends SubQueryBase
 {
     /**
-     * @return string
+     * @return string|null
      */
-    public function getTable()
+    public function getTable(): ?string
     {
         return $this->fullAlias();
     }
@@ -33,12 +33,12 @@ abstract class NoParentBase extends SubQueryBase
      *
      * @param $strAlias
      * @throws Caller
-     * @throws \Exception
+     * @throws Exception
      */
-    public function setAlias($strAlias)
+    public function setAlias($strAlias): void
     {
         if ($this->strFullAlias) {
-            throw new \Exception ("You cannot set an alias on a node after you have used it in a query. See the examples doc. You must set the alias while creating the node.");
+            throw new Exception ("You cannot set an alias on a node after you have used it in a query. See the example doc. You must set the alias while creating the node.");
         }
         try {
             // Changing the alias of the node. Must change pointers to the node too.
@@ -53,9 +53,9 @@ abstract class NoParentBase extends SubQueryBase
     /**
      * Aid to generating full aliases. Recursively gets and sets the parent alias, eventually creating, caching and returning
      * an alias for itself.
-     * @return string
+     * @return string|null
      */
-    public function fullAlias()
+    public function fullAlias(): ?string
     {
         if ($this->strFullAlias) {
             return $this->strFullAlias;

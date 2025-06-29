@@ -10,7 +10,9 @@
 namespace QCubed\Query\Condition;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
+use QCubed\Query\Node\Column;
 use QCubed\Type;
 use QCubed\Query\Node;
 
@@ -18,22 +20,24 @@ use QCubed\Query\Node;
 /**
  * Class NotBetween
  * Represent a test for an item being between two values.
- * Note that different SQLs treat this clause differently, and may produce different results. Its not transportable.
+ * Note that different SQLs treat this clause differently and may produce different results. It's not transportable.
  * @package QCubed\Query\Condition
- * @was QQConditionNotBetween
  */
 class NotBetween extends ComparisonBase
 {
     /** @var mixed */
-    protected $mixOperandTwo;
+    protected mixed $mixOperandTwo;
 
     /**
-     * @param Node\Column $objQueryNode
-     * @param string $strMinValue
-     * @param string $strMaxValue
+     * Constructor for initializing the object with a query node, minimum value, and maximum value.
+     *
+     * @param Column $objQueryNode The query node used in the initialization.
+     * @param mixed $strMinValue The minimum value to be used, either a string or a NamedValue instance.
+     * @param mixed $strMaxValue The maximum value to be used, either a string or a NamedValue instance.
      * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $strMinValue, $strMaxValue)
+    public function __construct(Node\Column $objQueryNode, mixed $strMinValue, mixed $strMaxValue)
     {
         parent::__construct($objQueryNode);
         try {
@@ -55,9 +59,13 @@ class NotBetween extends ComparisonBase
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the query builder with a 'NOT BETWEEN' condition based on the operands.
+     *
+     * @param Builder $objBuilder The query builder instance to which the condition is added.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $mixOperand = $this->mixOperand;
         $mixOperandTwo = $this->mixOperandTwo;

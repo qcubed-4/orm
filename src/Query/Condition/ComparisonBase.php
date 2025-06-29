@@ -9,6 +9,7 @@
 
 namespace QCubed\Query\Condition;
 
+use QCubed\Exception\Caller;
 use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
 use QCubed\Query\Condition\ConditionInterface as iCondition;
@@ -18,20 +19,19 @@ use QCubed\Query\Clause;
 /**
  * Class ComparisonBase
  * @package QCubed\Query\Condition
- * @was QQConditionComparison
  */
 abstract class ComparisonBase extends ConditionBase implements ConditionInterface
 {
     /** @var Node\Column */
-    public $objQueryNode;
-    public $mixOperand;
+    public Node\Column $objQueryNode;
+    public mixed $mixOperand;
 
     /**
      * @param Node\Column $objQueryNode
-     * @param mixed $mixOperand
+     * @param mixed|null $mixOperand
      * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $mixOperand = null)
+    public function __construct(Node\Column $objQueryNode, mixed $mixOperand = null)
     {
         $this->objQueryNode = $objQueryNode;
         if ($mixOperand instanceof Node\NamedValue || $mixOperand === null) {
@@ -52,18 +52,25 @@ abstract class ComparisonBase extends ConditionBase implements ConditionInterfac
         }
     }
 
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the query builder by adding a where clause based on the current query node, operator, and operand.
+     *
+     * @param Builder $objBuilder The query builder instance to which the where clause will be added.
+     * @throws Caller
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . $this->strOperator . Node\NodeBase::getValue($this->mixOperand,
                 $objBuilder));
     }
 
     /**
-     * Used by conditional joins to make sure the join conditions only apply to given table.
-     * @param $strTableName
-     * @returns bool
+     * Compares the table name of the current query node with the given table name.
+     *
+     * @param string $strTableName The name of the table to compare with.
+     * @return bool True if the table names are equal, false otherwise.
      */
-    public function equalTables($strTableName)
+    public function equalTables(string $strTableName): bool
     {
         return $this->objQueryNode->getTable() == $strTableName;
     }

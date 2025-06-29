@@ -17,12 +17,11 @@ use QCubed\Type;
 /**
  * Class LogicalBase
  * @package QCubed\Query\Condition
- * @was QQConditionLogical
  */
 abstract class LogicalBase extends ConditionBase implements ConditionInterface
 {
     /** @var iCondition[] */
-    protected $objConditionArray;
+    protected mixed $objConditionArray;
 
     public function __construct($mixParameterArray)
     {
@@ -35,7 +34,14 @@ abstract class LogicalBase extends ConditionBase implements ConditionInterface
         }
     }
 
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the provided query builder object by appending the conditions stored within the current object.
+     *
+     * @param Builder $objBuilder The query builder object to update with conditions.
+     * @return void
+     * @throws Caller If the object contains elements that are not valid conditions.
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $intLength = count($this->objConditionArray);
         if ($intLength) {
@@ -58,14 +64,21 @@ abstract class LogicalBase extends ConditionBase implements ConditionInterface
         }
     }
 
-    protected function collapseConditions($mixParameterArray)
+    /**
+     * Processes the input parameter array to create a consolidated array of conditions, ensuring all elements are of type iCondition.
+     *
+     * @param array $mixParameterArray The input array containing parameters, which can be either individual iCondition objects or arrays of them.
+     * @return array An array of iCondition objects extracted and validated from the input parameter array.
+     * @throws Caller If any parameter is not an instance of iCondition, or if the input array contains no valid conditions.
+     */
+    protected function collapseConditions(array $mixParameterArray): array
     {
         $objConditionArray = array();
         foreach ($mixParameterArray as $mixParameter) {
             if (is_array($mixParameter)) {
                 $objConditionArray = array_merge($objConditionArray, $mixParameter);
             } else {
-                array_push($objConditionArray, $mixParameter);
+                $objConditionArray[] = $mixParameter;
             }
         }
 
@@ -82,7 +95,13 @@ abstract class LogicalBase extends ConditionBase implements ConditionInterface
         }
     }
 
-    public function equalTables($strTableName)
+    /**
+     * Checks if all conditions within the object reference the specified table name.
+     *
+     * @param string $strTableName The name of the table to compare against.
+     * @return bool Returns true if all conditions reference the specified table name, false otherwise.
+     */
+    public function equalTables(string $strTableName): bool
     {
         foreach ($this->objConditionArray as $objCondition) {
             if (!$objCondition->equalTables($strTableName)) {

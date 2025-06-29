@@ -1,41 +1,61 @@
 // Override or Create New Properties and Variables
-		// For performance reasons, these variables and __set and __get override methods
-		// are commented out.  But if you wish to implement or override any
-		// of the data generated properties, please feel free to uncomment them.
+        // For performance reasons, these variables and __set and __get override methods
+        // are commented out.  But if you wish to implement or override any
+        // of the data generated properties, please feel free to uncomment them.
 /*
-		protected $strSomeNewProperty;
+        protected $strSomeNewProperty;
 
-		public function __get($strName) {
-			switch ($strName) {
-				case 'SomeNewProperty': return $this->strSomeNewProperty;
+    /**
+    * Override method to perform a property "Set"
+    * This will set the property $strName to be $mixValue
+    *
+    * @param string $strName Name of the property to set
+    * @param string $mixValue New value of the property
+    * @return void
+    * @throws Caller
+    */
+    protected function __set(string $strName, mixed $mixValue): void
+    {
+            switch ($strName) {
+                case 'SomeNewProperty': return $this->strSomeNewProperty;
 
-				default:
-					try {
-						return parent::__get($strName);
-					} catch (Caller $objExc) {
-						$objExc->incrementOffset();
-						throw $objExc;
-					}
-			}
-		}
+                default:
+                    try {
+                        return parent::__get($strName);
+                    } catch (Caller $objExc) {
+                        $objExc->incrementOffset();
+                        throw $objExc;
+                    }
+            }
+        }
 
-		public function __set($strName, $mixValue) {
-			switch ($strName) {
-				case 'SomeNewProperty':
-					try {
-						return ($this->strSomeNewProperty = \QCubed\Type::Cast($mixValue, \QCubed\Type::String));
-					} catch (QInvalidCastException $objExc) {
-						$objExc->incrementOffset();
-						throw $objExc;
-					}
+        /**
+        * Override method to perform a property "Set"
+        * This will set the property $strName to be $mixValue
+        *
+        * @param string $strName Name of the property to set
+        * @param string $mixValue New value of the property
+        * @return void
+        * @throws Caller
+        */
+        public function __set(string $strName, mixed $mixValue): void
+        {
+            switch ($strName) {
+                case 'SomeNewProperty':
+                    try {
+                        return ($this->strSomeNewProperty = \QCubed\Type::Cast($mixValue, \QCubed\Type::String));
+                    } catch (QInvalidCastException $objExc) {
+                        $objExc->incrementOffset();
+                        throw $objExc;
+                    }
 
-				default:
-					try {
-						return (parent::__set($strName, $mixValue));
-					} catch (Caller $objExc) {
-						$objExc->incrementOffset();
-						throw $objExc;
-					}
-			}
-		}
+                default:
+                    try {
+                        return (parent::__set($strName, $mixValue));
+                    } catch (Caller $objExc) {
+                        $objExc->incrementOffset();
+                        throw $objExc;
+                    }
+            }
+        }
 */

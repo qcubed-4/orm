@@ -10,32 +10,35 @@
 namespace QCubed\Codegen;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
+use QCubed\Exception\UndefinedProperty;
 use QCubed\ObjectBase;
 use QCubed\Type;
+use Exception;
 
 /**
  * A helper class used by the QCubed Code Generator to describe a table's column
  *
  * @package Codegen
  * @property SqlTable|TypeTable $OwnerTable             Table in which this column exists
- * @property boolean $PrimaryKey             Is the column a (part of) primary key
+ * @property boolean $PrimaryKey             Is the column a (part of) primary key?
  * @property string $Name                   Column name
  * @property string $PropertyName           Corresponding property name for the table
  * @property string $VariableName           Corresponding variable name (in ORM class and elsewhere)
  * @property string $VariableType           Type of data this column is supposed to store (constant from Type class)
- * @property string $VariableTypeAsConstant Variable type expressed as Type casted string (integer column would have this value as: "\QCubed\Type::INTEGER")
+ * @property string $VariableTypeAsConstant Variable type expressed as Type cast string (integer column would have this value as: "\QCubed\Type::INTEGER")
  * @property string $DbType                 Type in the database
- * @property int $Length                 If applicable, the length of data to be stored (useful for varchar data types)
- * @property mixed $Default                Default value of the column
+ * @property int $Length                    If applicable, the length of data to be stored (useful for varchar data types)
+ * @property mixed $Default                 Default value of the column
  * @property boolean $NotNull                Is this column a "NOT NULL" column?
  * @property boolean $Identity               Is this column an Identity column?
  * @property boolean $Indexed                Is there a single column index on this column?
  * @property boolean $Unique                 Does this column have a 'Unique' key defined on it?
  * @property boolean $Timestamp              Can this column contain a timestamp value?
- * @property Reference $Reference              Reference to another column (if this one is a foreign key)
- * @property array $Options                Options for codegen
- * @property string $Comment                Comment on the column
- * @property boolean $AutoUpdate             Whether column that is a Timestamp should generate code to automatically update the timestamp
+ * @property Reference $Reference            Reference to another column (if this one is a foreign key)
+ * @property array $Options                  Options for codegen
+ * @property string $Comment                 Comment on the column
+ * @property boolean $AutoUpdate             Should a column that is a timestamp generate code to automatically update the timestamp?
  */
 class SqlColumn extends ObjectBase implements ColumnInterface
 {
@@ -45,121 +48,124 @@ class SqlColumn extends ObjectBase implements ColumnInterface
     /////////////////////////////
 
     /**
-     * @var SqlTable The table in which this column exists.
+     * Reference to the owner table as an object-protected Member Variable
+     * Represents the table associated with this entity or relationship
+     * @var SqlTable|string OwnerTable
      */
-    protected $objOwnerTable;
+    protected mixed $objOwnerTable;
 
     /**
      * Specifies whether or not the column is a Primary Key
      * @var bool PrimaryKey
      */
-    protected $blnPrimaryKey;
+    protected bool $blnPrimaryKey;
 
     /**
      * Name of the column as defined in the database
      * So for example, "first_name"
      * @var string Name
      */
-    protected $strName;
+    protected string $strName;
 
     /**
-     * Name of the column as an object Property
+     * Name of the column as an object Property,
      * So for "first_name", it would be FirstName
      * @var string PropertyName
      */
-    protected $strPropertyName;
+    protected string $strPropertyName;
 
     /**
-     * Name of the column as an object protected Member Variable
+     * Name of the column as an object-protected Member Variable,
      * So for "first_name VARCHAR(50)", it would be strFirstName
      * @var string VariableName
      */
-    protected $strVariableName;
+    protected string $strVariableName;
 
     /**
      * The type of the protected member variable (uses one of the string constants from the Type class)
      * @var string VariableType
      */
-    protected $strVariableType;
+    protected string $strVariableType;
 
     /**
      * The type of the protected member variable (uses the actual constant from the Type class)
      * @var string VariableType
      */
-    protected $strVariableTypeAsConstant;
+    protected string $strVariableTypeAsConstant;
 
     /**
      * The actual type of the column in the database (uses one of the string constants from the DatabaseType class)
      * @var string DbType
      */
-    protected $strDbType;
+    protected string $strDbType;
 
     /**
      * Length of the column as defined in the database
-     * @var int Length
+     * @var int|null Length
      */
-    protected $intLength;
+    protected ?int $intLength = null;
 
     /**
      * The default value for the column as defined in the database
      * @var mixed Default
      */
-    protected $mixDefault;
+    protected mixed $mixDefault;
 
     /**
      * Specifies whether or not the column is specified as "NOT NULL"
      * @var bool NotNull
      */
-    protected $blnNotNull;
+    protected bool $blnNotNull;
 
     /**
-     * Specifies whether or not the column is an identiy column (like auto_increment)
+     * Specifies whether or not the column is an identification column (like auto increment)
      * @var bool Identity
      */
-    protected $blnIdentity;
+    protected bool $blnIdentity;
 
     /**
      * Specifies whether or not the column is a single-column Index
      * @var bool Indexed
      */
-    protected $blnIndexed;
+    protected bool $blnIndexed;
 
     /**
-     * Specifies whether or not the column is a unique
+     * Specifies whether or not the column is unique
      * @var bool Unique
      */
-    protected $blnUnique;
+    protected bool $blnUnique;
 
     /**
      * Specifies whether or not the column is a system-updated "timestamp" column
      * @var bool Timestamp
      */
-    protected $blnTimestamp;
+    protected bool $blnTimestamp;
+
 
     /**
-     * If the table column is foreign keyed off another column, then this
-     * Column instance would be a reference to another object
-     * @var Reference Reference
+     * Reference to an associated object or entity as a protected member variable.
+     * Typically used to establish relationships between objects or models.
+     * @var object|null objReference
      */
-    protected $objReference;
+    protected ?object $objReference = null;
 
     /**
      * The string value of the comment field in the database.
-     * @var string Comment
+     * @var string|null Comment
      */
-    protected $strComment;
+    protected ?string $strComment = '';
 
     /**
-     * Various overrides and options embedded in the comment for the column as a json object.
+     * Various overrides and options embedded in the comment for the column as a JSON object.
      * @var array Overrides
      */
-    protected $options = array();
+    protected array $options = array();
 
     /**
-     * For Timestamp columns, will add to the sql code to set this field to NOW whenever there is a save
-     * @var boolean
+     * For Timestamp columns, will add to the SQL code to set this field NOW whenever there is a save
+     * @var boolean AutoUpdate
      */
-    protected $blnAutoUpdate;
+    protected bool $blnAutoUpdate = false;
 
 
     ////////////////////
@@ -171,10 +177,10 @@ class SqlColumn extends ObjectBase implements ColumnInterface
      * This will get the value of $strName
      *
      * @param string $strName Name of the property to get
-     * @return array|bool|mixed
-     * @throws \Exception
+     * @return mixed
+     * @throws Exception
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'OwnerTable':
@@ -230,17 +236,18 @@ class SqlColumn extends ObjectBase implements ColumnInterface
      * This will set the property $strName to be $mixValue
      *
      * @param string $strName Name of the property to set
-     * @param string $mixValue New value of the property
-     * @throws Caller
+     * @param string|null $mixValue New value of the property
      * @return void
+     * @throws Caller
+     * @throws InvalidCast
+     * @throws UndefinedProperty
+     * @throws Exception
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         try {
             switch ($strName) {
                 case 'OwnerTable':
-                    //return $this->objOwnerTable = \QCubed\Type::cast($mixValue, 'SqlTable');
-                    // $mixValue might be a SqlTable or a QTypeTable
                     $this->objOwnerTable = $mixValue;
                     break;
                 case 'PrimaryKey':
@@ -268,7 +275,18 @@ class SqlColumn extends ObjectBase implements ColumnInterface
                     $this->intLength = Type::cast($mixValue, Type::INTEGER);
                     break;
                 case 'Default':
-                    if ($mixValue === null || (($mixValue === '' || $mixValue === '0000-00-00 00:00:00' || $mixValue === '0000-00-00') && !$this->blnNotNull)) {
+                    if (is_null($mixValue) || in_array($mixValue, ['0000-00-00', '0000-00-00 00:00:00'], true)) {
+                        $this->mixDefault = null;
+                    } elseif (ctype_digit($mixValue)) {
+                        $this->mixDefault = Type::cast($mixValue, Type::INTEGER);
+                    } elseif (is_numeric($mixValue)) {
+                        $this->mixDefault = Type::cast($mixValue, Type::FLOAT);
+                    } else {
+                        $this->mixDefault = Type::cast($mixValue, Type::STRING);
+                    }
+                    break;
+
+                    /*if ($mixValue === null || (($mixValue === '' || $mixValue === '0000-00-00 00:00:00' || $mixValue === '0000-00-00') && !$this->blnNotNull)) {
                         $this->mixDefault = null;
                     } else {
                         if (is_int($mixValue)) {
@@ -281,7 +299,7 @@ class SqlColumn extends ObjectBase implements ColumnInterface
                             }
                         }
                     }
-                    break;
+                    break;*/
                 case 'NotNull':
                     $this->blnNotNull = Type::cast($mixValue, Type::BOOLEAN);
                     break;

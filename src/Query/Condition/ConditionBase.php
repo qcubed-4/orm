@@ -9,6 +9,7 @@
 
 namespace QCubed\Query\Condition;
 
+use Exception;
 use QCubed\Exception\Caller;
 use QCubed\ObjectBase;
 use QCubed\Query\Builder;
@@ -18,18 +19,27 @@ use QCubed\Query\PartialBuilder;
  * Class Base
  * @package QCubed\Query\Condition
  * @abstract
- * @was QQCondition
  */
 abstract class ConditionBase extends ObjectBase
 {
-    protected $strOperator;
-    protected $blnProcessed;
+    protected string $strOperator;
+    protected bool $blnProcessed;
 
-    abstract public function updateQueryBuilder(Builder $objBuilder);
+    /**
+     * Updates the provided query builder instance with specific modifications or configurations.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     */
+    abstract public function updateQueryBuilder(Builder $objBuilder): void;
 
-    public function __toString()
+    /**
+     * Converts the object to its string representation.
+     *
+     * @return string The string representation of the object.
+     */
+    public function __toString(): string
     {
-        return 'QQCondition Object';
+        return 'Condition Object';
     }
 
 
@@ -38,12 +48,12 @@ abstract class ConditionBase extends ObjectBase
      * Mostly used for conditional joins.
      *
      * @param Builder $objBuilder
-     * @param bool|false $blnProcessOnce
+     * @param bool $blnProcessOnce
      * @return null|string
-     * @throws \Exception
+     * @throws Exception
      * @throws Caller
      */
-    public function getWhereClause(Builder $objBuilder, $blnProcessOnce = false)
+    public function getWhereClause(Builder $objBuilder, bool $blnProcessOnce = false): ?string
     {
         if ($blnProcessOnce && $this->blnProcessed) {
             return null;
@@ -67,9 +77,8 @@ abstract class ConditionBase extends ObjectBase
      * @param string $strTableName
      * @return bool
      */
-    public function equalTables($strTableName)
+    public function equalTables(string $strTableName): bool
     {
         return true;
     }
 }
-

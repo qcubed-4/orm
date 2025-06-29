@@ -1,33 +1,44 @@
-    ///////////////////////////////
+<?php
+use QCubed\Codegen\CodegenBase;
+use QCubed\Codegen\SqlTable;
+
+/** @var SqlTable $objTable */
+
+/** @var CodegenBase $objCodeGen */
+?>
+    ////////////////////////////////////
     // CLASS-WIDE LOAD AND COUNT METHODS
-    ///////////////////////////////
+    ////////////////////////////////////
 
     /**
-     * Static method to retrieve the Database object that owns this class.
-     * @return \QCubed\Database\DatabaseBase reference to the Database object that can query this class
-     */
-    public static function getDatabase()
+    * Retrieves the database connection associated with the class.
+    *
+    * @return DatabaseBase The database connection instance.
+    */
+    public static function getDatabase(): DatabaseBase
     {
-        return \QCubed\Database\Service::getDatabase(self::getDatabaseIndex());
+        return Service::getDatabase(self::getDatabaseIndex());
     }
 
     /**
-     * Load a <?= $objTable->ClassName ?> from PK Info
+    * Loads a <?= $objTable->ClassName ?> object based on the given ID.
+    * Optionally retrieves the object from cache if no clauses are provided.
+    *
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
 <?php if ($objColumn->PrimaryKey) { ?>
-     * @param <?= $objColumn->VariableType ?> $<?= $objColumn->VariableName ?>
+    * @param int|null <?= $objCodeGen->ParameterListFromColumnArray($objTable->PrimaryKeyColumnArray); ?> The ID of the $<?= $objColumn->VariableName ?> to load.
 <?php } ?>
 <?php } ?>
-
-     * @param iClause[] $objOptionalClauses additional optional iClause objects for this query
-     * @return <?= $objTable->ClassName ?>
-
-     */
-    public static function load(<?= $objCodeGen->ParameterListFromColumnArray($objTable->PrimaryKeyColumnArray); ?>, $objOptionalClauses = null)
+    * @param iClause|null $objOptionalClauses Additional optional iClause objects for this query.
+    * @return <?= $objTable->ClassName ?>|null The loaded <?= $objTable->ClassName ?> object or null if not found.
+    * @throws Caller
+    * @throws InvalidCast
+    */
+    public static function load(?int <?= $objCodeGen->ParameterListFromColumnArray($objTable->PrimaryKeyColumnArray); ?>, ?iClause $objOptionalClauses = null): ?<?= $objTable->ClassName ?>
     {
         if (!$objOptionalClauses) {
 <?php if (count ($objTable->PrimaryKeyColumnArray) == 1) { ?>
-            $objCachedObject = static::getFromCache ($<?= $objTable->PrimaryKeyColumnArray[0]->VariableName ?>);
+            $objCachedObject = static::getFromCache($<?= $objTable->PrimaryKeyColumnArray[0]->VariableName ?>);
 <?php } else {
 $aItems = array();
 foreach ($objTable->PrimaryKeyColumnArray as $objColumn) {
@@ -41,7 +52,7 @@ foreach ($objTable->PrimaryKeyColumnArray as $objColumn) {
         }
 
         // Use QuerySingle to Perform the Query
-        $objToReturn = <?= $objTable->ClassName ?>::querySingle(
+        return <?= $objTable->ClassName ?>::querySingle(
             QQ::AndCondition(
 <?php foreach ($objTable->PrimaryKeyColumnArray as $objColumn) { ?>
                 QQ::Equal(QQN::<?= $objTable->ClassName ?>()-><?= $objColumn->PropertyName ?>, $<?= $objColumn->VariableName ?>),
@@ -50,19 +61,15 @@ foreach ($objTable->PrimaryKeyColumnArray as $objColumn) {
             ),
             $objOptionalClauses
         );
-        return $objToReturn;
     }
 
-
     /**
-     * Load all <?= $objTable->ClassNamePlural ?>
-
-     * @param iClause[]|null $objOptionalClauses additional optional iClause objects for this query
-     * @throws Caller
-     * @return <?= $objTable->ClassName ?>[]
-     * @throws Caller
-     */
-    public static function loadAll($objOptionalClauses = null)
+    * Loads all <?= $objTable->ClassName ?> objects as an array.
+    * @param mixed $objOptionalClauses Optional query clauses to customize the query.
+    * @return array An array of <?= $objTable->ClassName ?> objects.
+    * @throws Caller If more than one argument is passed or another error occurs.
+    */
+    public static function loadAll(mixed $objOptionalClauses = null): array
     {
         if (func_num_args() > 1) {
             throw new Caller("LoadAll must be called with an array of optional clauses as a single argument");
@@ -77,11 +84,11 @@ foreach ($objTable->PrimaryKeyColumnArray as $objColumn) {
     }
 
     /**
-     * Count all <?= $objTable->ClassNamePlural ?>
-
-     * @return int
-     */
-    public static function countAll()
+    * Counts all records in the <?= $objTable->ClassName ?> table.
+    * @return int The total count of all <?= $objTable->ClassName ?> records.
+    * @throws Caller
+    */
+    public static function countAll(): int
     {
         // Call <?= $objTable->ClassName ?>::queryCount to perform the CountAll query
         return <?= $objTable->ClassName ?>::queryCount(QQ::All());

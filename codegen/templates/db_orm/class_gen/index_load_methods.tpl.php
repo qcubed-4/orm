@@ -15,10 +15,10 @@
 <?php } ?>
 <?php } ?>
 
-
     ////////////////////////////////////////////////////
     // INDEX-BASED LOAD METHODS (Array via Many to Many)
     ////////////////////////////////////////////////////
+
 <?php foreach ($objTable->ManyToManyReferenceArray as $objManyToManyReference) { ?>
 <?php   include("index_load_array_manytomany.tpl.php"); ?>
 

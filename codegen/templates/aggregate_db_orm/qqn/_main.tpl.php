@@ -10,18 +10,22 @@
 	);
 ?>
 <?php print("<?php\n"); ?>
+
     /**
      * Class QQN
      * Factory methods for generating database nodes at the top of a node chain.
      */
-	class QQN {
+    class QQN {
 <?php foreach ($objTableArray as $objTable) { ?>
-		/**
-		 * @return Node<?= $objTable->ClassName ?>
+        /**
+         * @return Node<?= $objTable->ClassName ?>
 
-		 */
-		static public function <?= lcfirst($objTable->ClassName) ?>() {
-			return new Node<?= $objTable->ClassName ?>('<?= $objTable->Name ?>', null, null);
-		}
+         */
+        static public function <?= lcfirst($objTable->ClassName) ?>():Node<?= $objTable->ClassName ?>
+
+        {
+            return new Node<?= $objTable->ClassName ?>('<?= $objTable->Name ?>', null, null);
+        }
+
 <?php } ?>
-	}
+    }

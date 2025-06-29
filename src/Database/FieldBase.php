@@ -9,6 +9,7 @@
 
 namespace QCubed\Database;
 
+use Exception;
 use QCubed\Exception\Caller;
 use QCubed\ObjectBase;
 
@@ -29,26 +30,25 @@ use QCubed\ObjectBase;
  * @property-read string $Type
  * @property-read string $Comment
  * @package QCubed\Database
- * @was QDatabaseFieldBase
  */
 abstract class FieldBase extends ObjectBase
 {
-    protected $strName;
-    protected $strOriginalName;
-    protected $strTable;
-    protected $strOriginalTable;
-    protected $strDefault;
-    protected $intMaxLength;
-    protected $strComment;
+    protected string $strName;
+    protected string $strOriginalName;
+    protected string $strTable;
+    protected string $strOriginalTable;
+    protected ?string $strDefault = null;
+    protected ?string $intMaxLength = null;
+    protected ?string $strComment = null;
 
     // Bool
-    protected $blnIdentity;
-    protected $blnNotNull;
-    protected $blnPrimaryKey;
-    protected $blnUnique;
-    protected $blnTimestamp;
+    protected bool $blnIdentity;
+    protected bool $blnNotNull;
+    protected bool $blnPrimaryKey;
+    protected bool $blnUnique;
+    protected bool $blnTimestamp = false;
 
-    protected $strType;
+    protected string $strType;
 
     /**
      * PHP magic method
@@ -56,9 +56,9 @@ abstract class FieldBase extends ObjectBase
      * @param string $strName Property name
      *
      * @return mixed
-     * @throws \Exception|Caller
+     * @throws Exception|Caller
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case "Name":
@@ -97,4 +97,3 @@ abstract class FieldBase extends ObjectBase
         }
     }
 }
-

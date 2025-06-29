@@ -1,32 +1,47 @@
+<?php
+use QCubed\Codegen\CodegenBase;
+use QCubed\Codegen\SqlTable;
 
+/** @var SqlTable $objTable */
+
+/** @var CodegenBase $objCodeGen */
+?>
     /**
-     * Static Qcubed Query method to query for a single <?= $objTable->ClassName ?> object.
-     * Offloads work to QModelTrait.trait.php
-     * @param iCondition $objConditions any conditions on the query, itself
-     * @param iClause[] $objOptionalClauses additional optional iClause objects for this query
-     * @param mixed[] $mixParameterArray a array of name-value pairs to perform PrepareStatement with
-     * @return <?= $objTable->ClassName ?> the queried object
-     */
-    public static function querySingle(iCondition $objConditions, $objOptionalClauses = null, $mixParameterArray = null)
+    * Static Qcubed Query method to query for a single <?= $objTable->ClassName ?> object.
+    * Offloads work to QModelTrait.trait.php
+    * @param iCondition $objConditions any conditions on the query, itself
+    * @param iClause|null $objOptionalClauses additional optional iClause objects for this query
+    * @param array|null $mixParameterArray an array of name-value pairs to perform PrepareStatement with
+    * @return <?= $objTable->ClassName ?>|null the queried object
+    * @throws Caller
+    */
+    public static function querySingle(iCondition $objConditions, ?iClause $objOptionalClauses = null, ?array $mixParameterArray = null): ?<?= $objTable->ClassName ?>
     {
         return static::_QuerySingle($objConditions, $objOptionalClauses, $mixParameterArray);
     }
 
     /**
-     * Static Qcubed Query method to query for an array of <?= $objTable->ClassName ?> objects.
-     * Offloads work to QModelTrait.trait.php
-     * @param iCondition $objConditions any conditions on the query, itself
-     * @param iClause[] $objOptionalClauses additional optional iClause objects for this query
-     * @param mixed[] $mixParameterArray a array of name-value pairs to perform PrepareStatement with
-     * @return <?= $objTable->ClassName ?>[] the queried objects as an array
-     */
-    public static function queryArray(iCondition $objConditions, $objOptionalClauses = null, $mixParameterArray = null)
+    * Static Qcubed Query method to query for an array of <?= $objTable->ClassName ?> objects.
+    * Offloads work to QModelTrait.trait.php
+    * @param iCondition $objConditions any conditions on the query, itself
+    * @param iClause[] $objOptionalClauses additional optional iClause objects for this query
+    * @param array|null $mixParameterArray an array of name-value pairs to perform PrepareStatement with
+    * @return <?= $objTable->ClassName ?>[] the queried objects as an array
+    * @throws Caller
+    */
+    public static function queryArray(iCondition $objConditions, mixed $objOptionalClauses = null, ?array $mixParameterArray = null): array
     {
         return static::_QueryArray($objConditions, $objOptionalClauses, $mixParameterArray);
     }
 
 <?php if (count($objTable->PrimaryKeyColumnArray) == 1) { ?>
-    public static function queryPrimaryKeys(?iCondition $objConditions = null)
+    /**
+    * Query and retrieve primary key values from the <?= $objTable->ClassName ?> table based on the given conditions.
+    * @param iCondition|null $objConditions Optional conditions to filter the query. Defaults to fetching all records.
+    * @return int[] An array of primary key values corresponding to the matched <?= $objTable->ClassName ?> objects.
+    * @throws Caller
+    */
+    public static function queryPrimaryKeys(?iCondition $objConditions = null): array
     {
         if ($objConditions === null) {
             $objConditions = QQ::All();
@@ -42,30 +57,18 @@
 <?php } ?>
 
     // See QModelTrait.trait.php for the following
-    // protected static function BuildQueryStatement(&$objQueryBuilder, iCondition $objConditions, $objOptionalClauses, $mixParameterArray, $blnCountOnly) {
-    // public static function QueryCursor(iCondition $objConditions, $objOptionalClauses = null, $mixParameterArray = null) {
-    // public static function QueryCount(iCondition $objConditions, $objOptionalClauses = null, $mixParameterArray = null) {
-    // public static function QueryArrayCached(iCondition $objConditions, $objOptionalClauses = null, $mixParameterArray = null, $blnForceUpdate = false) {
+    // protected static function buildQueryStatement(?Builder &$objQueryBuilder, iCondition $objConditions, mixed $objOptionalClauses, mixed $mixParameterArray, bool $blnCountOnly): string {
+    // public static function queryCursor(iCondition $objConditions,?array $objOptionalClauses = null, ?array $mixParameterArray = null): ResultBase {
+    // public static function queryCount(iCondition $objConditions, mixed $objOptionalClauses = null, mixed $mixParameterArray = null): int {
 
     /**
-    * Return an object corresponding to the given key, or null.
+    * Retrieve an entity from the cache.
     *
-    * The key might be null if:
-    * 	The table has no primary key, or
-    *  SetSkipPrimaryKey was used in a query with QSelect.
-    *
-    * Otherwise, the default here is to use the local cache.
-    *
-    * Note that you rarely would want to change this. Caching at this level happens
-    * after a query has executed. Using a cache like APC or MemCache at this point would
-    * be really expensive, and would only be worth it for a large table.
-    *
-    * Offloads the work to the ModelTrait
-    *
-    * @param $key
-    * @return <?= $objTable->ClassName ?> the queried object
+    * @param mixed $key The key used to identify the cached entity.
+    * @return <?= $objTable->ClassName ?>|null The entity retrieved from the cache, which may be a <?= $objTable->ClassName ?>| instance or implement the ModelTrait.
     */
-    public static function getFromCache($key)
+    public static function getFromCache(mixed $key): ?<?= $objTable->ClassName ?>
+
     {
         return static::_GetFromCache($key);
     }

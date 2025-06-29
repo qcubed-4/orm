@@ -9,7 +9,7 @@
 
 namespace QCubed\Codegen;
 
-use \QCubed\Database;
+use QCubed\Database;
 
 /**
  * Control categories, used by the ModelConnectorEditDlg to pair controls with database types or relationships *

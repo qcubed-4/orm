@@ -10,7 +10,9 @@
 namespace QCubed\Query\Condition;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
+use QCubed\Query\Node\Column;
 use QCubed\Type;
 use QCubed\Query\Node;
 
@@ -18,16 +20,18 @@ use QCubed\Query\Node;
  * Class Like
  * Represent a test for a SQL Like function.
  * @package QCubed\Query\Condition
- * @was QQConditionLike
  */
 class Like extends ComparisonBase
 {
     /**
-     * @param Node\Column $objQueryNode
-     * @param string $strValue
+     * Constructs the object and initializes the operand based on the provided value.
+     *
+     * @param Column $objQueryNode The query node associated with this object.
+     * @param mixed $strValue The value to initialize the operand. Can be an instance of Node\NamedValue or a value to be cast to a string.
      * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $strValue)
+    public function __construct(Node\Column $objQueryNode, mixed $strValue)
     {
         parent::__construct($objQueryNode);
 
@@ -45,13 +49,16 @@ class Like extends ComparisonBase
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the query builder with a WHERE clause based on the operand.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $mixOperand = $this->mixOperand;
         if ($mixOperand instanceof Node\NamedValue) {
-            /** @var Node\NamedValue $mixOperand */
             $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' LIKE ' . $mixOperand->parameter());
         } else {
             $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' LIKE ' . $objBuilder->Database->sqlVariable($mixOperand));

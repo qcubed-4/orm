@@ -1,27 +1,42 @@
 <?php
-	/** @var QSqlTable $objTable */
-	/** @var \QCubed\Codegen\DatabaseCodeGen $objCodeGen */
-	global $_TEMPLATE_SETTINGS;
-	$_TEMPLATE_SETTINGS = array(
-		'OverwriteFlag' => true,
-		'DirectorySuffix' => '',
-		'TargetDirectory' => QCUBED_PROJECT_MODEL_GEN_DIR,
-		'TargetFileName' => $objTable->ClassName . 'Gen.php'
-	);
+/** @var SqlTable $objTable */
+
+/** @var DatabaseCodeGen $objCodeGen */
+
+global $_TEMPLATE_SETTINGS;
+$_TEMPLATE_SETTINGS = array(
+    'OverwriteFlag' => true,
+    'DirectorySuffix' => '',
+    'TargetDirectory' => QCUBED_PROJECT_MODEL_GEN_DIR,
+    'TargetFileName' => $objTable->ClassName . 'Gen.php'
+);
 ?>
+
 <?php print("<?php\n"); ?>
 /**
  * Generated <?= $objTable->ClassName ?> base class file
  */
 
+use QCubed\Database\DatabaseBase;
+use QCubed\Database\ResultBase;
+use QCubed\Database\RowBase;
+use QCubed\Database\Service;
+use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
+use QCubed\Database\Exception\UndefinedPrimaryKey;
+use QCubed\Exception\UndefinedProperty;
+use QCubed\Js\Helper;
+use QCubed\ObjectBase;
+
+use QCubed\Project\Watcher\Watcher;
+use QCubed\Query\Node\NodeBase;
 use QCubed\Query\QQ;
 use QCubed\Query\Condition\ConditionInterface as iCondition;
 use QCubed\Query\Clause\ClauseInterface as iClause;
 use QCubed\Query\Node;
-use QCubed\Exception\Caller;
 use QCubed\Type;
-use QCubed\QDateTime;
 use QCubed\Query\ModelTrait;
+use QCubed\QDateTime;
 
 /**
  * Class <?= $objTable->ClassName ?>Gen
@@ -45,16 +60,16 @@ use QCubed\Query\ModelTrait;
 <?php include("property_comments.tpl.php"); ?>
 
  */
-abstract class <?= $objTable->ClassName ?>Gen extends \QCubed\ObjectBase implements IteratorAggregate, JsonSerializable {
+abstract class <?= $objTable->ClassName ?>Gen extends ObjectBase implements IteratorAggregate, JsonSerializable {
 
     use ModelTrait;
 
-    /** @var boolean Set to false in superclass to save a little time if this db object should not be watched for changes. */
-    public static $blnWatchChanges = true;
+    /** @var boolean Set to false in a superclass to save a little time if this db object should not be watched for changes. */
+    public static bool $blnWatchChanges = true;
 
 <?php if ($objTable->PrimaryKeyColumnArray)  { ?>
-    /** @var <?= $objTable->ClassName ?>[] Short term cached <?= $objTable->ClassName ?> objects */
-    protected static $objCacheArray = array();
+    /** @var <?= $objTable->ClassName ?>[] Short-term cached <?= $objTable->ClassName ?> objects */
+    protected static array $objCacheArray = array();
 <?php } ?>
 
 <?php include("protected_member_variables.tpl.php"); ?>
@@ -69,41 +84,30 @@ abstract class <?= $objTable->ClassName ?>Gen extends \QCubed\ObjectBase impleme
 
 <?php include("qcubed_query_methods.tpl.php"); ?>
 
-
 <?php include("instantiation_methods.tpl.php"); ?>
 
-
 <?php include("index_load_methods.tpl.php"); ?>
-
-
-
-
     //////////////////////////
     // SAVE, DELETE AND RELOAD
     //////////////////////////
-    <?php include("object_save.tpl.php"); ?>
+<?php include("object_save.tpl.php"); ?>
+<?php include("object_delete.tpl.php"); ?>
 
-    <?php include("object_delete.tpl.php"); ?>
+<?php include("object_reload.tpl.php"); ?>
 
-
-    <?php include("object_reload.tpl.php"); ?>
-
-    ////////////////////
+    /////////////
     // UTILITIES
-    ////////////////////
+    /////////////
     <?php include("array_indexers.tpl.php"); ?>
-
     <?php include("property_getters_setters.tpl.php"); ?>
     <?php include("copy.tpl.php"); ?>
     <?php include("broadcast_changes.tpl.php"); ?>
 
 
-    ////////////////////
+    /////////////////////
     // PUBLIC OVERRIDERS
-    ////////////////////
-
+    /////////////////////
     <?php include("property_get.tpl.php"); ?>
-
 
     <?php include("property_set.tpl.php"); ?>
 
@@ -111,21 +115,14 @@ abstract class <?= $objTable->ClassName ?>Gen extends \QCubed\ObjectBase impleme
 
     <?php include("associated_objects_methods.tpl.php"); ?>
 
-
     <?php include("class_info.tpl.php"); ?>
-
 
     <?php include("soap_methods.tpl.php"); ?>
 
-
     <?php include("json_methods.tpl.php"); ?>
-
 
     <?php include("custom_funcs.tpl.php"); // Stub file. Default is empty. Create one in your project/includes/codegen/templates/db_orm/class_gen directory to add your custom functions.?>
 
-
 }
-
-
 
 <?php include("qcubed_query_classes.tpl.php"); ?>

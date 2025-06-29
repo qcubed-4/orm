@@ -10,11 +10,12 @@
 namespace QCubed\Codegen;
 
 /**
- * Interface ColumnInterface
+ * Represents a contract for a database column interaction.
  *
- * This is an empty interface that helps us simply identify SqlColumn, ManyToMany, and ReverseReferences
- *
- * @package QCubed\Codegen
+ * This interface defines the blueprint for interacting with columns,
+ * typically in the context of a database or data structure. Classes implementing
+ * this interface should provide specific implementations for handling
+ * column-related operations.
  */
 interface ColumnInterface {
 

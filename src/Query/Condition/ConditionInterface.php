@@ -20,11 +20,11 @@ use QCubed\Query\Builder;
  */
 interface ConditionInterface
 {
-    public function updateQueryBuilder(Builder $objBuilder);
+    public function updateQueryBuilder(Builder $objBuilder): void;
 
-    public function __toString();
+    public function __toString(): string;
 
-    public function getWhereClause(Builder $objBuilder, $blnProcessOnce = false);
+    public function getWhereClause(Builder $objBuilder, bool $blnProcessOnce = false): ?string;
 
-    public function equalTables($strTableName);
+    public function equalTables(string $strTableName): bool;
 }

@@ -10,6 +10,7 @@
 namespace QCubed\Codegen;
 
 use QCubed\Exception\Caller;
+use Exception;
 use QCubed\ObjectBase;
 use QCubed\Type;
 
@@ -43,51 +44,55 @@ class ManyToManyReference extends ObjectBase implements ColumnInterface
     /////////////////////////////
     // Protected Member Variables
     /////////////////////////////
+    /**
+     * @var array|bool|mixed|SqlColumn[]|string
+     */
+    public string $Name;
 
     /**
-     * Name of the foreign key object itself, as defined in the database or create script
+     * Name of the foreign key object itself, as defined in the database or create a script
      * @var string KeyName
      */
-    protected $strKeyName;
+    protected string $strKeyName;
 
     /**
      * Name of the association table, itself (the many-to-many table that maps
-     * the relationshipfor this ManyToManyReference)
+     * the relationship this ManyToManyReference)
      * @var string Table
      */
-    protected $strTable;
+    protected string $strTable;
 
     /**
      * Name of the referencing column (the column that owns the foreign key to this table)
      * @var string Column
      */
-    protected $strColumn;
+    protected string $strColumn;
 
     /**
      * Name of property corresponding to this column as used in the node.
      * @var string PropertyName
      */
-    protected $strPropertyName;
+    protected string $strPropertyName;
 
     /**
      * Name of the opposite column (the column that owns the foreign key to the related table)
      * @var string OppositeColumn
      */
-    protected $strOppositeColumn;
+    protected string $strOppositeColumn;
 
     /**
      * Type of the opposite column (the column that owns the foreign key to the related table)
      * as a Variable type (for example, to be used to define the input parameter type to a Load function)
      * @var string OppositeVariableType
      */
-    protected $strOppositeVariableType;
+    protected string $strOppositeVariableType;
 
     /**
      * Database type of the opposite column (the column that owns the foreign key to the related table)
-     * as a  DbType (for example, to be used to define the input parameter type to a Node)
+     * as a DbType (for example, to be used to define the input parameter type to a Node)
      * @var string OppositeDbType
      */
-    protected $strOppositeDbType;
+    protected string $strOppositeDbType;
 
 
     /**
@@ -95,7 +100,7 @@ class ManyToManyReference extends ObjectBase implements ColumnInterface
      * as a Variable name (for example, to be used as an input parameter to a Load function)
      * @var string OppositeVariableName
      */
-    protected $strOppositeVariableName;
+    protected string $strOppositeVariableName;
 
     /**
      * Name of the opposite column (the column that owns the foreign key to the related table)
@@ -103,29 +108,29 @@ class ManyToManyReference extends ObjectBase implements ColumnInterface
      * column itself)
      * @var string OppositePropertyName
      */
-    protected $strOppositePropertyName;
+    protected string $strOppositePropertyName;
 
     /**
      * Name of the opposite column (the column that owns the foreign key to the related table)
      * as an Object Description (see "ObjectDescription" below)
      * @var string OppositeObjectDescription
      */
-    protected $strOppositeObjectDescription;
+    protected string $strOppositeObjectDescription;
 
     /**
      * The name of the associated table (the table that the OTHER
      * column in the association table points to)
      * @var string AssociatedTable
      */
-    protected $strAssociatedTable;
+    protected string $strAssociatedTable;
 
     /**
-     * Name of the reverse-referenced object as an function parameter.
+     * Name of the reverse-referenced object as a function parameter.
      * So if this is a reverse reference to "person" via "report.person_id",
      * the VariableName would be "objReport"
      * @var string VariableName
      */
-    protected $strVariableName;
+    protected string $strVariableName;
 
     /**
      * Type of the reverse-referenced object as a class.
@@ -133,38 +138,38 @@ class ManyToManyReference extends ObjectBase implements ColumnInterface
      * the VariableName would be "Report"
      * @var string VariableType
      */
-    protected $strVariableType;
+    protected string $strVariableType;
 
     /**
      * Singular object description used in the function names for the
      * reverse reference.  See documentation for more details.
      * @var string ObjectDescription
      */
-    protected $strObjectDescription;
+    protected string $strObjectDescription;
 
     /**
      * Plural object description used in the function names for the
      * reverse reference.  See documentation for more details.
      * @var string VariableType
      */
-    protected $strObjectDescriptionPlural;
+    protected string $strObjectDescriptionPlural;
 
     /**
      * Array of non-FK Column objects (as indexed by Column name)
      * @var SqlColumn[] ColumnArray
      */
-    protected $objColumnArray;
+    protected array $objColumnArray;
     /**
      * Array of non-FK Column objects (as indexed by Column name)
      * @var boolean IsTypeAssociation
      */
-    protected $blnIsTypeAssociation;
+    protected bool $blnIsTypeAssociation;
 
     /**
-     * Keyed array of overrides read from the override file
+     * A keyed array of overrides read from the override file
      * @var array Overrides
      */
-    protected $options;
+    protected array $options;
 
 
     ////////////////////
@@ -176,10 +181,10 @@ class ManyToManyReference extends ObjectBase implements ColumnInterface
      * This will get the value of $strName
      *
      * @param string $strName Name of the property to get
-     * @throws Caller
      * @return mixed
+     * @throws Caller
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'KeyName':
@@ -234,11 +239,12 @@ class ManyToManyReference extends ObjectBase implements ColumnInterface
      * This will set the property $strName to be $mixValue
      *
      * @param string $strName Name of the property to set
-     * @param string $mixValue New value of the property
-     * @throws Caller
+     * @param mixed $mixValue New value of the property
      * @return void
+     * @throws Caller
+     * @throws Exception
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         try {
             switch ($strName) {

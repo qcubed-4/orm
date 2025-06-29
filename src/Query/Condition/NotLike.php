@@ -10,7 +10,9 @@
 namespace QCubed\Query\Condition;
 
 use QCubed\Exception\Caller;
+use QCubed\Exception\InvalidCast;
 use QCubed\Query\Builder;
+use QCubed\Query\Node\Column;
 use QCubed\Type;
 use QCubed\Query\Node;
 
@@ -18,16 +20,18 @@ use QCubed\Query\Node;
  * Class NotLike
  * Represent a test for a SQL Like function.
  * @package QCubed\Query\Condition
- * @was QQConditionNotLike
  */
 class NotLike extends ComparisonBase
 {
     /**
-     * @param Node\Column $objQueryNode
-     * @param mixed|null $strValue
+     * Constructs a new instance of the class.
+     *
+     * @param Column $objQueryNode The query node object to associate with this instance.
+     * @param mixed $strValue The value to be used for the operand, which will be cast to a string if not an instance of Node\NamedValue.
      * @throws Caller
+     * @throws InvalidCast
      */
-    public function __construct(Node\Column $objQueryNode, $strValue)
+    public function __construct(Node\Column $objQueryNode, mixed $strValue)
     {
         parent::__construct($objQueryNode);
 
@@ -45,13 +49,17 @@ class NotLike extends ComparisonBase
     }
 
     /**
-     * @param Builder $objBuilder
+     * Updates the query builder with a condition that ensures the column associated with the query node
+     * does not match the specified operand using the SQL 'NOT LIKE' clause.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     * @return void
+     * @throws Caller
      */
-    public function updateQueryBuilder(Builder $objBuilder)
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $mixOperand = $this->mixOperand;
         if ($mixOperand instanceof Node\NamedValue) {
-            /** @var Node\NamedValue $mixOperand */
             $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' NOT LIKE ' . $mixOperand->parameter());
         } else {
             $objBuilder->addWhereItem($this->objQueryNode->getColumnAlias($objBuilder) . ' NOT LIKE ' . $objBuilder->Database->sqlVariable($mixOperand));

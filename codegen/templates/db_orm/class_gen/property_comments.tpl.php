@@ -1,5 +1,27 @@
-<?php foreach ($objTable->ColumnArray as $objColumn) { ?>
- * @property<?php if ($objColumn->Identity || $objColumn->Timestamp) print '-read'; ?> <?= $objColumn->VariableType ?> $<?= $objColumn->PropertyName ?> <?php if ($objColumn->Comment) print $objColumn->Comment; else print 'the value of the ' . $objColumn->Name . ' column'; ?> <?php if ($objColumn->Identity) print '(Read-Only PK)'; else if ($objColumn->PrimaryKey) print '(PK)'; else if ($objColumn->Timestamp) print '(Read-Only Timestamp)'; else if ($objColumn->Unique) print '(Unique)'; else if ($objColumn->NotNull) print '(Not Null)'; ?>
+<?php
+use QCubed\Codegen\CodegenBase;
+use QCubed\Codegen\SqlTable;
+
+/** @var SqlTable $objTable */
+
+/** @var CodegenBase $objCodeGen */
+?>
+<?php foreach ($objTable->ColumnArray as $objColumn) {
+
+    // Override type specification:
+    $displayType = $objColumn->VariableType;
+    if ($displayType === '\QCubed\QDateTime') {
+        $displayType = 'QDateTime';
+    }
+    if ($displayType === 'integer') {
+        $displayType = 'int';
+    }
+    if ($displayType === 'double') {
+        $displayType = 'float';
+    }
+    // add more else-ifs if necessary!
+?>
+ * @property<?php if ($objColumn->Identity || $objColumn->Timestamp) print '-read'; ?> <?= $displayType ?? $objColumn->VariableType ?> $<?= $objColumn->PropertyName ?> <?php if ($objColumn->Comment) print $objColumn->Comment; else print 'the value of the ' . $objColumn->Name . ' column'; ?> <?php if ($objColumn->Identity) print '(Read-Only PK)'; else if ($objColumn->PrimaryKey) print '(PK)'; else if ($objColumn->Timestamp) print '(Read-Only Timestamp)'; else if ($objColumn->Unique) print '(Unique)'; else if ($objColumn->NotNull) print '(Not Null)'; ?>
 
 <?php   if (($objColumn->Reference) && ($objColumn->Reference->IsType)) { ?>
  * @property-read string $<?= $objColumn->Reference->PropertyName ?> the value of the <?= $objColumn->Name ?> column as a type name
@@ -11,15 +33,29 @@
 
 <?php } ?>
 <?php } ?>
-<?php foreach ($objTable->ReverseReferenceArray as $objReverseReference) { ?>
+<?php foreach ($objTable->ReverseReferenceArray as $objReverseReference) {
+
+    $displayType = $objReverseReference->VariableType;
+    if ($displayType === '\QCubed\QDateTime') {
+        $displayType = 'QDateTime';
+    }
+    if ($displayType === 'integer') {
+        $displayType = 'int';
+    }
+    if ($displayType === 'double') {
+        $displayType = 'float';
+    }
+    // add more else-ifs if necessary!
+
+?>
 <?php if ($objReverseReference->Unique) { ?>
- * @property <?= $objReverseReference->VariableType ?> $<?= $objReverseReference->ObjectPropertyName ?> the value of the <?= $objReverseReference->VariableType ?> object that uniquely references this <?= $objTable->ClassName ?>
+ * @property <?= $displayType ?? $objReverseReference->VariableType ?> $<?= $objReverseReference->ObjectPropertyName ?> the value of the <?= $objReverseReference->VariableType ?> object that uniquely references this <?= $objTable->ClassName ?>
 
 <?php } ?>
 <?php } ?>
 <?php foreach ($objTable->ManyToManyReferenceArray as $objReference) { ?>
 <?php 
-	$objAssociatedTable = $objCodeGen->GetTable($objReference->AssociatedTable);
+	$objAssociatedTable = $objCodeGen->getTable($objReference->AssociatedTable);
     $varPrefix = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? '_int' : '_obj');
     $varType = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? 'integer' : $objReference->VariableType);
 

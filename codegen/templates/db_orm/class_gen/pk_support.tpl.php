@@ -1,4 +1,12 @@
-<?php if ($objTable->PrimaryKeyColumnArray)  {
+<?php
+use QCubed\Codegen\CodegenBase;
+use QCubed\Codegen\SqlTable;
+
+/** @var SqlTable $objTable */
+
+/** @var CodegenBase $objCodeGen */
+
+if ($objTable->PrimaryKeyColumnArray)  {
 if (count($objTable->PrimaryKeyColumnArray) == 1) {
     $pkType = $objTable->PrimaryKeyColumnArray[0]->VariableType;
 } else {
@@ -6,28 +14,26 @@ if (count($objTable->PrimaryKeyColumnArray) == 1) {
 }
 
 ?>
-<?php 	if (count ($objTable->PrimaryKeyColumnArray) > 1) { ?>
-    /**
-    * Convert the composite key to a single unique value suitable for use in caching. Override to provide
-    * a more suitable method of combining the keys if necessary.
-    * @var mixed[] array of values to use as the key.
-    * @return string
-    */
+<?php if (count ($objTable->PrimaryKeyColumnArray) > 1) { ?>
 
-    protected static function makeMultiKey($keyValues)
+    /**
+    * Generate a multi-key string by concatenating an array of key values with a colon separator.
+    * @param array $keyValues Array of key values to be concatenated
+    * @return string Concatenated multi-key string
+    */
+    protected static function makeMultiKey(array $keyValues): string
     {
         return implode (':', $keyValues);
     }
-<?php 	} ?>
+<?php } ?>
 
     /**
-     * Returns a single unique value representing the primary key.
-     * @return <?= $pkType ?>
-
-     */
-    public function primaryKey()
+    * Retrieve the primary key for the current object.
+    * @return string|null The primary key value, or null if not set.
+    */
+    public function primaryKey(): ?string
     {
-<?php 	if (count ($objTable->PrimaryKeyColumnArray) == 1) { ?>
+<?php if (count ($objTable->PrimaryKeyColumnArray) == 1) { ?>
         return $this-><?= $objTable->PrimaryKeyColumnArray[0]->VariableName ?>;
 <?php 	} else {
         $aItems = array();
@@ -36,54 +42,58 @@ if (count($objTable->PrimaryKeyColumnArray) == 1) {
         }
 ?>
         return static::makeMultiKey (array(<?= implode (', ', $aItems) ?>));
-<?php 	} ?>
+<?php } ?>
     }
 
     /**
     * Returns the primary key directly from a database row.
-    * @param \QCubed\Database\RowBase $objDbRow
-    * @param string $strAliasPrefix
+    * @param RowBase $objDbRow
+    * @param string|null $strAliasPrefix
     * @param string[] $strColumnAliasArray
-    * @return <?= $pkType ?>
-
-    **/
-    protected static function getRowPrimaryKey(\QCubed\Database\RowBase $objDbRow, $strAliasPrefix, $strColumnAliasArray)
+    * @return integer|null
+    */
+    protected static function getRowPrimaryKey(RowBase $objDbRow, ?string $strAliasPrefix, array $strColumnAliasArray): ?string
     {
-<?php 	if (count ($objTable->PrimaryKeyColumnArray) == 1) { ?>
+<?php if (count ($objTable->PrimaryKeyColumnArray) == 1) { ?>
         $strAlias = $strAliasPrefix . '<?= $objTable->PrimaryKeyColumnArray[0]->Name ?>';
         $strAliasName = !empty($strColumnAliasArray[$strAlias]) ? $strColumnAliasArray[$strAlias] : $strAlias;
         $strColumns = $objDbRow->GetColumnNameArray();
-        $mixVal = (isset ($strColumns[$strAliasName]) ? $strColumns[$strAliasName] : null);
-        <?php if ($s = \QCubed\Codegen\DatabaseCodeGen::GetCastString($objTable->PrimaryKeyColumnArray[0]))	echo $s; ?>
+        return ($strColumns[$strAliasName] ?? null);
 
-        return $mixVal;
-<?php 	} else { ?>
+<?php } else { ?>
         $strColumns = $objDbRow->GetColumnNameArray();
-<?php 		foreach ($objTable->PrimaryKeyColumnArray as $objPKColumn) {?>
+<?php foreach ($objTable->PrimaryKeyColumnArray as $objPKColumn) {?>
         $strAlias = $strAliasPrefix . '<?= $objPKColumn->Name ?>';
         $strAliasName = !empty($strColumnAliasArray[$strAlias]) ? $strColumnAliasArray[$strAlias] : $strAlias;
-        $mixVal = (isset ($strColumns[$strAliasName]) ? $strColumns[$strAliasName] : null);
+        $mixVal = (isset ($strColumns[$strAliasName]) ?? null);
         if ($mixVal === null) return null;
-<?php 			if ($s = \QCubed\Codegen\DatabaseCodeGen::GetCastString($objPKColumn))	echo $s; ?>
+<?php if ($s = \QCubed\Codegen\DatabaseCodeGen::GetCastString($objPKColumn)) echo $s; ?>
         $values[] = $mixVal;
-<?php 		} ?>
+<?php } ?>
 
         return static::MakeMultiKey ($values);
-<?php 	} ?>
+<?php } ?>
     }
 <?php } else { ?>
-   /**
-    * @return null
+    /**
+    * Retrieve the primary key value for the current object.
+    *
+    * @return null Returns the primary key value, or null if not applicable.
     */
-    protected function primaryKey()
+    protected function primaryKey(): null
     {
         return null;
     }
 
-   /**
-    * @return null
+    /**
+    * Retrieve the primary key for a given database row.
+    *
+    * @param RowBase $objDbRow The database row object containing the data.
+    * @param string $strAliasPrefix Optional prefix for column aliases in the row.
+    * @param string[] $strColumnAliasArray Array of column aliases, used to map database columns.
+    * @return null The primary key for the given row or null if not applicable.
     */
-    protected static function getRowPrimaryKey($objDbRow, $strAliasPrefix, $strColumnAliasArray)
+    protected static function getRowPrimaryKey(RowBase $objDbRow, string $strAliasPrefix, array $strColumnAliasArray): null
     {
         return null;
     }

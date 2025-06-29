@@ -1,5 +1,5 @@
 <?php
-	/** @var QSqlTable[] $objTableArray */
+	/** @var SqlTable[] $objTableArray */
 	/** @var \QCubed\Codegen\DatabaseCodeGen $objCodeGen */
 	global $_TEMPLATE_SETTINGS;
 	$_TEMPLATE_SETTINGS = array(

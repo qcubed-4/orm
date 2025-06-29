@@ -10,6 +10,7 @@
 namespace QCubed\Query\Node;
 
 use QCubed\Exception\Caller;
+use Exception;
 use QCubed\ObjectBase;
 use QCubed\Query\Builder;
 use QCubed\Query\Clause\Select;
@@ -17,71 +18,86 @@ use QCubed\Query\Condition\ConditionInterface as iCondition;
 use QCubed\Type;
 
 /**
- * The abstract Node base class. This represents an "object" in a SQL join tree. There are a number of different subclasses of
- * the Node, depending on the kind of object represented. The top of the join tree is generally a table node, and
- * the bottom is generally a column node, but that depends on the context in which the node is being used.
+ * The abstract Node base class. This represents an "object" in an SQL join tree. There are a number of different subclasses of
+ * node, depending on the type of object being represented. The top of a join tree is generally a table node, and
+ * the bottom is generally a column node, but this depends on the context in which the node is used.
  *
  * The properties begin with underscores to prevent name conflicts with codegenerated subclasses.
  *
- * @property-read NodeBase $_ParentNode        // Parent object in tree.
- * @property-read string $_Name                // Default SQL name in query, or default alias
- * @property-read string $_Alias                // Actual alias. Usually the name, unless changed by QQ::alias() call
- * @property-read string $_PropertyName        // The name as used in PHP
- * @property-read string $_Type                // The type of object. A SQL type if referring to a column.
- * @property-read string $_RootTableName        // The name of the table at the top of the tree. Rednundant, since it could be found be following the chain.
- * @property-read string $_TableName            // The name of the table associated with this node, if its not a column node.
- * @property-read string $_PrimaryKey
- * @property-read string $_ClassName
- * @property-read NodeBase $_PrimaryKeyNode
- * @property bool $ExpandAsArray True if this node should be array expanded.
- * @property-read bool $IsType Is a type table node. For association type arrays.
- * @property-read NodeBase $ChildNodeArray
- * @was QQNode
+ * @property-read NodeBase|null $_ParentNode        // Parent object in a tree.
+ * @property-read string|null $_Name                // Default SQL name in query, or default alias
+ * @property-read string|null $_Alias               // Actual alias. Usually the name, unless changed by QQ::alias() calls
+ * @property-read string|null $_PropertyName        // The name as used in PHP
+ * @property-read string|null $_Type                // The type of object. A SQL type if referring to a column.
+ * @property-read string|null $_RootTableName       // The name of the table at the top of the tree. Redundant, since it could be found to be following the chain.
+ * @property-read string|null $_TableName           // The name of the table associated with this node, if it's not a column node.
+ * @property-read string|null $_PrimaryKey
+ * @property-read string|null $_ClassName
+ * @property-read NodeBase|null $_PrimaryKeyNode
+ * @property bool $ExpandAsArray                    // True if this node should be arrayed expanded.
+ * @property-read bool|null $IsType                 // Is a type table node. For association type arrays.
+ * @property-read array<string, NodeBase>|null $ChildNodeArray
  */
 abstract class NodeBase extends ObjectBase
 {
-    /** @var null|NodeBase|bool */
-    protected $objParentNode;
-    /** @var  string Type node. SQL type or table type */
-    protected $strType;
-    /** @var  string SQL Name of related object in the database */
-    protected $strName;
-    /** @var  string Alias, if one was assigned using QQ::alias(). Otherwise, same as name. */
-    protected $strAlias;
-    /** @var  string resolved alias that includes parent join tables. */
-    protected $strFullAlias;
-    /** @var  string PHP property name of the related PHP object */
-    protected $strPropertyName;
-    /** @var  string copy of the root table name at the top of the node tree. */
-    protected $strRootTableName;
-    /** @var  string name of SQL table associated with this node. Generally set by subclasses. */
-    protected $strTableName;
+    /** @var NodeBase|null|bool $objParentNode */
+    protected NodeBase|null|bool $objParentNode = null;
 
-    /** @var  string SQL primary key, for nodes that have primary keys */
-    protected $strPrimaryKey;
-    /** @var  string PHP class name */
-    protected $strClassName;
+    /** @var string|null $strType */
+    protected ?string $strType = null;
 
-    // used by expansion nodes
-    /** @var  bool True if this is an expand as array node point */
-    protected $blnExpandAsArray;
-    /** @var  NodeBase[] the array of child nodes if this is an expand as array point */
-    protected $objChildNodeArray;
-    /** @var  bool True if this is a Type node */
-    protected $blnIsType;
+    /** @var string|null $strName */
+    protected ?string $strName = null;
 
+    /** @var string|null $strAlias */
+    protected ?string $strAlias = null;
+
+    /** @var string|null $strFullAlias */
+    protected ?string $strFullAlias = null;
+
+    /** @var string|null $strPropertyName */
+    protected ?string $strPropertyName = null;
+
+    /** @var string|null $strRootTableName */
+    protected ?string $strRootTableName = null;
+
+    /** @var string|null $strTableName */
+    protected ?string $strTableName = null;
+
+    /** @var string|null $strPrimaryKey */
+    protected ?string $strPrimaryKey = null;
+
+    /** @var string|null $strClassName */
+    protected ?string $strClassName = null;
+
+    /** @var bool $blnExpandAsArray */
+    protected bool $blnExpandAsArray = false;
+
+    /** @var array<string, NodeBase>|null $objChildNodeArray */
+    protected ?array $objChildNodeArray = null;
+
+    /** @var bool|null $blnIsType */
+    protected ?bool $blnIsType = null;
+
+    /**
+     * @param Builder $objBuilder
+     * @param bool $blnExpandSelection
+     * @param iCondition|null $objJoinCondition
+     * @param Select|null $objSelect
+     * @return mixed
+     */
     abstract public function join(
         Builder $objBuilder,
-        $blnExpandSelection = false,
+        ?bool $blnExpandSelection = false,
         ?iCondition $objJoinCondition = null,
         ?Select $objSelect = null
-    );
+    ): mixed;
 
     /**
      * Return the variable type. Should be a FieldType enum.
-     * @return string
+     * @return string|null
      */
-    public function getType()
+    public function getType(): ?string
     {
         return $this->strType;
     }
@@ -90,18 +106,16 @@ abstract class NodeBase extends ObjectBase
      * Change the alias of the node, primarily for joining the same table more than once.
      * @param string $strAlias
      * @throws Caller
-     * @throws \Exception
+     * @throws Exception
      */
-    public function setAlias($strAlias)
+    public function setAlias(string $strAlias): void
     {
         if ($this->strFullAlias) {
-            throw new \Exception ("You cannot set an alias on a node after you have used it in a query. See the examples doc. You must set the alias while creating the node.");
+            throw new Exception("You cannot set an alias on a node after you have used it in a query. See the example doc. You must set the alias while creating the node.");
         }
         try {
-            // Changing the alias of the node. Must change pointers to the node too.
             $strNewAlias = Type::cast($strAlias, Type::STRING);
-            if ($this->objParentNode) {
-                assert(is_object($this->objParentNode));
+            if ($this->objParentNode instanceof NodeBase) {
                 unset($this->objParentNode->objChildNodeArray[$this->strAlias]);
                 $this->objParentNode->objChildNodeArray[$strNewAlias] = $this;
             }
@@ -113,18 +127,18 @@ abstract class NodeBase extends ObjectBase
     }
 
     /**
-     * Aid to generating full aliases. Recursively gets and sets the parent alias, eventually creating, caching and returning
-     * an alias for itself.
-     * @return string
+     * Aid to generating full aliases. Recursively gets and sets the parent alias.
+     * @return string|null
      */
-    public function fullAlias()
+    public function fullAlias(): ?string
     {
         if ($this->strFullAlias) {
             return $this->strFullAlias;
         } else {
-            assert(!empty($this->strAlias));    // Alias should always be set by default
-            if ($this->objParentNode) {
-                assert(is_object($this->objParentNode));
+            if (empty($this->strAlias)) {
+                return null;
+            }
+            if ($this->objParentNode instanceof NodeBase) {
                 return $this->objParentNode->fullAlias() . '__' . $this->strAlias;
             } else {
                 return $this->strAlias;
@@ -133,38 +147,34 @@ abstract class NodeBase extends ObjectBase
     }
 
     /**
-     * Returns the fields in this node. Assumes its a table node.
+     * Returns the fields in this node. Assumes a table node.
      * @return string[]
      */
-    public function fields()
+    public function fields(): array
     {
         return [];
     }
 
     /**
-     * Returns the primary key fields in this node. Assumes its a table node.
+     * Returns the primary key fields in this node.
      * @return string[]
      */
-    public function primaryKeyFields()
+    public function primaryKeyFields(): array
     {
         return [];
     }
 
     /**
-     * Merges a node tree into this node, building the child nodes. The node being received
-     * is assumed to be specially built node such that only one child node exists, if any,
-     * and the last node in the chain is designated as array expansion. The goal of all of this
-     * is to set up a node chain where intermediate nodes can be designated as being array
-     * expansion nodes, as well as the leaf nodes.
-     *
+     * Merges a node tree into this node, building the child nodes.
      * @param NodeBase $objNewNode
      * @throws Caller
      */
-    public function _MergeExpansionNode(NodeBase $objNewNode)
+    public function _MergeExpansionNode(NodeBase $objNewNode): void
     {
-        if (!$objNewNode || empty($objNewNode->objChildNodeArray)) {
+        if (empty($objNewNode->objChildNodeArray)) {
             return;
         }
+
         if ($objNewNode->strName != $this->strName) {
             throw new Caller('Expansion node tables must match.');
         }
@@ -173,35 +183,31 @@ abstract class NodeBase extends ObjectBase
             $this->objChildNodeArray = $objNewNode->objChildNodeArray;
         } else {
             $objChildNode = reset($objNewNode->objChildNodeArray);
-            if (isset ($this->objChildNodeArray[$objChildNode->strAlias])) {
-                if ($objChildNode->blnExpandAsArray) {
-                    $this->objChildNodeArray[$objChildNode->strAlias]->blnExpandAsArray = true;
-                    // assume this is a leaf node, so don't follow any more.
+            if ($objChildNode instanceof NodeBase) {
+                if (isset($this->objChildNodeArray[$objChildNode->strAlias])) {
+                    if ($objChildNode->blnExpandAsArray) {
+                        $this->objChildNodeArray[$objChildNode->strAlias]->blnExpandAsArray = true;
+                    } else {
+                        $this->objChildNodeArray[$objChildNode->strAlias]->_MergeExpansionNode($objChildNode);
+                    }
                 } else {
-                    $this->objChildNodeArray[$objChildNode->strAlias]->_MergeExpansionNode($objChildNode);
+                    $this->objChildNodeArray[$objChildNode->strAlias] = $objChildNode;
                 }
-            } else {
-                $this->objChildNodeArray[$objChildNode->strAlias] = $objChildNode;
             }
         }
     }
 
     /**
-     * Puts the "Select" clause fields for this node into builder.
-     *
+     * Puts the "Select" clause fields for this node into the builder.
      * @param Builder $objBuilder
-     * @param null|string $strPrefix
-     * @param null|Select $objSelect
+     * @param string|null $strPrefix
+     * @param Select|null $objSelect
+     * @return void
      */
-    public function putSelectFields($objBuilder, $strPrefix = null, $objSelect = null)
+    public function putSelectFields(Builder $objBuilder, ?string $strPrefix = null, ?Select $objSelect = null): void
     {
-        if ($strPrefix) {
-            $strTableName = $strPrefix;
-            $strAliasPrefix = $strPrefix . '__';
-        } else {
-            $strTableName = $this->strTableName;
-            $strAliasPrefix = '';
-        }
+        $strTableName   = $strPrefix ?: $this->strTableName;
+        $strAliasPrefix = $strPrefix ? ($strPrefix . '__') : '';
 
         if ($objSelect) {
             if (!$objSelect->skipPrimaryKey() && !$objBuilder->Distinct) {
@@ -222,21 +228,21 @@ abstract class NodeBase extends ObjectBase
     /**
      * @return NodeBase|null
      */
-    public function firstChild()
+    public function firstChild(): ?NodeBase
     {
         $a = $this->objChildNodeArray;
         if ($a) {
-            return reset($a);
-        } else {
-            return null;
+            $first = reset($a);
+            return $first instanceof NodeBase ? $first : null;
         }
+        return null;
     }
 
     /**
-     * Returns the extended table associated with the node.
-     * @return string
+     * Retrieves the table name or alias by delegating to the fullAlias method.
+     * @return string|null
      */
-    public function getTable()
+    public function getTable(): ?string
     {
         return $this->fullAlias();
     }
@@ -244,57 +250,35 @@ abstract class NodeBase extends ObjectBase
     /**
      * @param mixed $mixValue
      * @param Builder $objBuilder
-     * @param boolean $blnEqualityType can be null (for no equality), true (to add a standard "equal to") or false (to add a standard "not equal to")
+     * @param bool|null $blnEqualityType
      * @return string
      * @throws Caller
      */
-    public static function getValue($mixValue, Builder $objBuilder, $blnEqualityType = null)
+    public static function getValue(mixed $mixValue, Builder $objBuilder, ?bool $blnEqualityType = null): string
     {
         if ($mixValue instanceof NamedValue) {
-            /** @var NamedValue $mixValue */
             return $mixValue->parameter($blnEqualityType);
         }
 
         if ($mixValue instanceof NodeBase) {
-            /** @var NodeBase $mixValue */
             if ($n = $mixValue->_PrimaryKeyNode) {
-                $mixValue = $n;    // Convert table node to column node
+                $mixValue = $n; // Convert table node to column node
+            }
+            $strToReturn = '';
+            if (!is_null($blnEqualityType)) {
+                $strToReturn = $blnEqualityType ? '= ' : '!= ';
             }
             /** @var Column $mixValue */
-            if (is_null($blnEqualityType)) {
-                $strToReturn = '';
-            } else {
-                if ($blnEqualityType) {
-                    $strToReturn = '= ';
-                } else {
-                    $strToReturn = '!= ';
-                }
-            }
-
-            try {
-                return $strToReturn . $mixValue->getColumnAlias($objBuilder);
-            } catch (Caller $objExc) {
-                $objExc->incrementOffset();
-                throw $objExc;
-            }
+            return $strToReturn . $mixValue->getColumnAlias($objBuilder);
         } else {
-            if (is_null($blnEqualityType)) {
-                $blnIncludeEquality = false;
-                $blnReverseEquality = false;
-            } else {
-                $blnIncludeEquality = true;
-                if ($blnEqualityType) {
-                    $blnReverseEquality = false;
-                } else {
-                    $blnReverseEquality = true;
-                }
-            }
-
+            // Scalar value
+            $blnIncludeEquality = !is_null($blnEqualityType);
+            $blnReverseEquality = $blnEqualityType === false;
             return $objBuilder->Database->sqlVariable($mixValue, $blnIncludeEquality, $blnReverseEquality);
         }
     }
 
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case '_ParentNode':
@@ -317,15 +301,12 @@ abstract class NodeBase extends ObjectBase
                 return $this->strClassName;
             case '_PrimaryKeyNode':
                 return null;
-
             case 'ExpandAsArray':
                 return $this->blnExpandAsArray;
             case 'IsType':
                 return $this->blnIsType;
-
             case 'ChildNodeArray':
                 return $this->objChildNodeArray;
-
             default:
                 try {
                     return parent::__get($strName);
@@ -336,26 +317,25 @@ abstract class NodeBase extends ObjectBase
         }
     }
 
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         switch ($strName) {
             case 'ExpandAsArray':
                 try {
-                    return ($this->blnExpandAsArray = Type::cast($mixValue, Type::BOOLEAN));
+                    $this->blnExpandAsArray = Type::cast($mixValue, Type::BOOLEAN);
                 } catch (Caller $objExc) {
                     $objExc->incrementOffset();
                     throw $objExc;
                 }
-
+                break;
             default:
                 try {
-                    return parent::__set($strName, $mixValue);
+                    parent::__set($strName, $mixValue);
                 } catch (Caller $objExc) {
                     $objExc->incrementOffset();
                     throw $objExc;
                 }
         }
     }
-
-
 }
+

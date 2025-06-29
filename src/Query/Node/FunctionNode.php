@@ -9,28 +9,28 @@
 
 namespace QCubed\Query\Node;
 
+use QCubed\Exception\Caller;
 use QCubed\Query\Builder;
 
 /**
  * Class FunctionNode
- * A node representing a SQL function call
+ * A node representing an SQL function call
  *
  * @package QCubed\Query\Node
- * @was QQFunctionNode
  */
 class FunctionNode extends SubQueryBase
 {
     /** @var  string */
-    protected $strFunctionName;
+    protected string $strFunctionName;
     /** @var  array Could be constants or column nodes */
-    protected $params;
+    protected array $params;
 
     /**
      * QQFunctionNode constructor.
      * @param string $strFunctionName
-     * @param string $params
+     * @param array $params
      */
-    public function __construct($strFunctionName, $params)
+    public function __construct(string $strFunctionName, array $params)
     {
         parent::__construct('', '', '');
         $this->strFunctionName = $strFunctionName;
@@ -40,8 +40,9 @@ class FunctionNode extends SubQueryBase
     /**
      * @param Builder $objBuilder
      * @return string
+     * @throws Caller
      */
-    public function getColumnAlias(Builder $objBuilder)
+    public function getColumnAlias(Builder $objBuilder): string
     {
         $strSql = $this->strFunctionName . '(';
         foreach ($this->params as $param) {
@@ -53,7 +54,7 @@ class FunctionNode extends SubQueryBase
             }
             $strSql .= ',';
         }
-        $strSql = substr($strSql, 0, -1);    // get rid of last comma
+        $strSql = substr($strSql, 0, -1);    // get rid of the last comma
         $strSql .= ')';
         return $strSql;
     }

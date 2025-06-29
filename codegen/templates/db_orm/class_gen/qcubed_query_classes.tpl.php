@@ -1,6 +1,6 @@
-/////////////////////////////////////
-// ADDITIONAL CLASSES for QCubed QUERY
-/////////////////////////////////////
+    //////////////////////////////////////
+    // ADDITIONAL CLASSES for QCubed QUERY
+    //////////////////////////////////////
 
 <?php foreach ($objTable->ManyToManyReferenceArray as $objReference) { ?>
 /**
@@ -12,29 +12,31 @@
  **/
 class Node<?= $objTable->ClassName ?><?= $objReference->ObjectDescription ?> extends Node\Association
 {
-    protected $strType = \QCubed\Type::ASSOCIATION;
-    protected $strName = '<?= strtolower($objReference->ObjectDescription); ?>';
+    protected ?string $strType = Type::ASSOCIATION;
+    protected ?string $strName = '<?= strtolower($objReference->ObjectDescription); ?>';
 
-    protected $strTableName = '<?= $objReference->Table ?>';
-    protected $strPrimaryKey = '<?= $objReference->Column ?>';
-    protected $strClassName = '<?= $objReference->VariableType ?>';
-    protected $strPropertyName = '<?= $objReference->ObjectDescription ?>';
-    protected $strAlias = '<?= strtolower($objReference->ObjectDescription); ?>';
+    protected ?string $strTableName = '<?= $objReference->Table ?>';
+    protected ?string $strPrimaryKey = '<?= $objReference->Column ?>';
+    protected ?string $strClassName = '<?= $objReference->VariableType ?>';
+    protected ?string $strPropertyName = '<?= $objReference->ObjectDescription ?>';
+    protected ?string $strAlias = '<?= strtolower($objReference->ObjectDescription); ?>';
 
     /**
-    * __get Magic Method
+    * Magic method to retrieve properties dynamically.
     *
-    * @param string $strName
-    * @throws Caller
+    * @param string $strName The name of the property being accessed.
+    * @return mixed Returns the value of the requested property if it exists, or delegates to the parent method.
+    * @throws Caller If the requested property is not accessible or does not exist.
     */
-    public function __get($strName) {
+    public function __get(string $strName): mixed
+    {
         switch ($strName) {
             case '<?= $objReference->OppositePropertyName ?>':
                 return new Node\Column('<?= $objReference->OppositeColumn ?>', '<?= $objReference->OppositePropertyName ?>', '<?= $objReference->OppositeDbType ?>', $this);
             case '<?= $objReference->VariableType ?>':
-                return new Node<?= $objReference->VariableType ?>('<?= $objReference->OppositeColumn ?>', '<?= $objReference->OppositePropertyName ?>', '<?= $objReference->OppositeDbType ?>', $this);
             case '_ChildTableNode':
                 return new Node<?= $objReference->VariableType ?>('<?= $objReference->OppositeColumn ?>', '<?= $objReference->OppositePropertyName ?>', '<?= $objReference->OppositeDbType ?>', $this);
+
             default:
                 try {
                     return parent::__get($strName);
@@ -68,14 +70,17 @@ class Node<?= $objTable->ClassName ?><?= $objReference->ObjectDescription ?> ext
  * @property-read Node\Column<?php if (($objPkColumn->Reference) && (!$objPkColumn->Reference->IsType)) print $objPkColumn->Reference->VariableType; ?> $_PrimaryKeyNode
  **/
 class Node<?= $objTable->ClassName ?> extends Node\Table {
-    protected $strTableName = '<?= $objTable->Name ?>';
-    protected $strPrimaryKey = '<?= $objTable->PrimaryKeyColumnArray[0]->Name ?>';
-    protected $strClassName = '<?= $objTable->ClassName ?>';
+    protected ?string $strTableName = '<?= $objTable->Name ?>';
+    protected ?string $strPrimaryKey = '<?= $objTable->PrimaryKeyColumnArray[0]->Name ?>';
+    protected ?string $strClassName = '<?= $objTable->ClassName ?>';
 
     /**
-    * @return array
+    * Returns an array of fields.
+    *
+    * @return array The list of defined fields.
     */
-    public function fields() {
+    public function fields(): array
+    {
         return [
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
             "<?= $objColumn->Name ?>",
@@ -84,9 +89,12 @@ class Node<?= $objTable->ClassName ?> extends Node\Table {
     }
 
     /**
-    * @return array
+    * Retrieves the list of primary key fields for the entity.
+    *
+    * @return array The list of primary key fields.
     */
-    public function primaryKeyFields() {
+    public function primaryKeyFields(): array
+    {
         return [
 <?php foreach ($objTable->PrimaryKeyColumnArray as $objColumn) { ?>
             "<?= $objColumn->Name ?>",
@@ -94,21 +102,26 @@ class Node<?= $objTable->ClassName ?> extends Node\Table {
         ];
     }
 
-   /**
-    * @return AbstractDatabase
+    /**
+    * Retrieves and returns the database connection instance.
+    *
+    * @return DatabaseBase The database connection instance.
     */
-    protected function database() {
-        return \QCubed\Database\Service::getDatabase(<?= $objCodeGen->DatabaseIndex; ?>);
+    protected function database(): DatabaseBase
+    {
+        return Service::getDatabase(<?= $objCodeGen->DatabaseIndex; ?>);
     }
 
-
     /**
-    * __get Magic Method
+    * Retrieves the value of a property based on its name.
     *
-    * @param string $strName
+    * @param string $strName The name of the property to retrieve.
+    * @return mixed The value of the requested property. If the property does not exist, attempts to retrieve it using the parent class or throws an exception if not found.
     * @throws Caller
+    * @throws UndefinedProperty
     */
-    public function __get($strName) {
+    public function __get(string $strName): mixed
+    {
         switch ($strName) {
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
             case '<?= $objColumn->PropertyName ?>':
@@ -165,14 +178,17 @@ class Node<?= $objTable->ClassName ?> extends Node\Table {
  * @property-read Node\Column<?php if (($objPkColumn->Reference) && (!$objPkColumn->Reference->IsType)) print $objPkColumn->Reference->VariableType; ?> $_PrimaryKeyNode
  **/
 class ReverseReferenceNode<?= $objTable->ClassName ?> extends Node\ReverseReference {
-    protected $strTableName = '<?= $objTable->Name ?>';
-    protected $strPrimaryKey = '<?= $objTable->PrimaryKeyColumnArray[0]->Name ?>';
-    protected $strClassName = '<?= $objTable->ClassName ?>';
+    protected ?string $strTableName = '<?= $objTable->Name ?>';
+    protected ?string $strPrimaryKey = '<?= $objTable->PrimaryKeyColumnArray[0]->Name ?>';
+    protected ?string $strClassName = '<?= $objTable->ClassName ?>';
 
     /**
-    * @return array
+    * Returns an array of fields.
+    *
+    * @return array The list of defined fields.
     */
-    public function fields() {
+    public function fields(): array
+    {
         return [
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
             "<?= $objColumn->Name ?>",
@@ -181,9 +197,12 @@ class ReverseReferenceNode<?= $objTable->ClassName ?> extends Node\ReverseRefere
     }
 
     /**
-    * @return array
+    * Retrieves an array of field names that represent the primary key for the corresponding entity.
+    *
+    * @return array An array of strings containing the names of the primary key fields.
     */
-    public function primaryKeyFields() {
+    public function primaryKeyFields(): array
+    {
         return [
 <?php foreach ($objTable->PrimaryKeyColumnArray as $objColumn) { ?>
             "<?= $objColumn->Name ?>",
@@ -192,12 +211,15 @@ class ReverseReferenceNode<?= $objTable->ClassName ?> extends Node\ReverseRefere
     }
 
     /**
-    * __get Magic Method
+    * Retrieves the value of a property based on its name.
     *
-    * @param string $strName
+    * @param string $strName The name of the property to retrieve.
+    * @return mixed The value of the requested property. If the property does not exist, attempts to retrieve it using the parent class or throws an exception if not found.
     * @throws Caller
+    * @throws UndefinedProperty
     */
-    public function __get($strName) {
+    public function __get(string $strName): mixed
+    {
         switch ($strName) {
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
             case '<?= $objColumn->PropertyName ?>':

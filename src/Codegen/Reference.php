@@ -12,6 +12,7 @@ namespace QCubed\Codegen;
 use QCubed\Exception\Caller;
 use QCubed\ObjectBase;
 use QCubed\Type;
+use Exception;
 
 /**
  * Used by the QCubed Code Generator to describe a column reference
@@ -27,7 +28,6 @@ use QCubed\Type;
  * @property boolean $IsType
  * @property ReverseReference ReverseReference
  * @property string $Name
- * @was QReference
  */
 class Reference extends ObjectBase
 {
@@ -37,65 +37,65 @@ class Reference extends ObjectBase
     /////////////////////////////
 
     /**
-     * Name of the foreign key object, as defined in the database or create script
+     * Name of the foreign key object, as defined in the database or create a script
      * @var string KeyName
      */
-    protected $strKeyName;
+    protected string $strKeyName;
 
     /**
      * Name of the table that is being referenced
      * @var string Table
      */
-    protected $strTable;
+    protected string $strTable;
 
     /**
      * Name of the column that is being referenced
      * @var string Column
      */
-    protected $strColumn;
+    protected string $strColumn;
 
     /**
-     * Name of the referenced object as an class Property
+     * Name of the referenced object as a class Property,
      * So if the column that this reference points from is named
      * "primary_annual_report_id", it would be PrimaryAnnualReport
      * @var string PropertyName
      */
-    protected $strPropertyName;
+    protected string $strPropertyName;
 
     /**
-     * Name of the  referenced object as an class protected Member object
-     * So if the column that this reference poitns from is named
+     * Name of the referenced object as a class-protected Member object,
+     * So if the column that this reference points from is named
      * "primary_annual_report_id", it would be objPrimaryAnnualReport
      * @var string VariableName
      */
-    protected $strVariableName;
+    protected string $strVariableName;
 
     /**
      * The type of the protected member object (should be based off of $this->strTable)
      * So if referencing the table "annual_report", it would be AnnualReport
      * @var string VariableType
      */
-    protected $strVariableType;
+    protected string $strVariableType;
 
     /**
      * If the table that this reference points to is a type table, then this is true
-     * @var string IsType
+     * @var bool IsType
      */
-    protected $blnIsType;
+    protected bool $blnIsType;
 
     /**
      * The reverse reference pointing back to this reference.
      *
      * @var ReverseReference
      */
-    protected $objReverseReference;
+    protected ReverseReference $objReverseReference;
 
     /**
-     * The name of the object, used by json and other encodings.
+     * The name of the object, used by JSON and other encodings.
      *
      * @var string
      */
-    protected $strName;
+    protected string $strName;
 
 
     ////////////////////
@@ -107,10 +107,10 @@ class Reference extends ObjectBase
      * This will get the value of $strName
      *
      * @param string $strName Name of the property to get
-     * @throws Caller
      * @return mixed
+     *@throws Caller
      */
-    public function __get($strName)
+    public function __get(string $strName): mixed
     {
         switch ($strName) {
             case 'KeyName':
@@ -146,35 +146,26 @@ class Reference extends ObjectBase
      * This will set the property $strName to be $mixValue
      *
      * @param string $strName Name of the property to set
-     * @param string $mixValue New value of the property
+     * @param mixed $mixValue New value of the property
+     * @return void
      * @throws Caller
-     * @return mixed
+     * @throws Exception
      */
-    public function __set($strName, $mixValue)
+    public function __set(string $strName, mixed $mixValue): void
     {
         try {
-            switch ($strName) {
-                case 'KeyName':
-                    return $this->strKeyName = Type::cast($mixValue, Type::STRING);
-                case 'Table':
-                    return $this->strTable = Type::cast($mixValue, Type::STRING);
-                case 'Column':
-                    return $this->strColumn = Type::cast($mixValue, Type::STRING);
-                case 'PropertyName':
-                    return $this->strPropertyName = Type::cast($mixValue, Type::STRING);
-                case 'VariableName':
-                    return $this->strVariableName = Type::cast($mixValue, Type::STRING);
-                case 'VariableType':
-                    return $this->strVariableType = Type::cast($mixValue, Type::STRING);
-                case 'IsType':
-                    return $this->blnIsType = Type::cast($mixValue, Type::BOOLEAN);
-                case 'ReverseReference':
-                    return $this->objReverseReference = $mixValue;
-                case 'Name':
-                    return $this->strName = Type::cast($mixValue, Type::STRING);
-                default:
-                    return parent::__set($strName, $mixValue);
-            }
+            match ($strName) {
+                'KeyName' => $this->strKeyName = Type::cast($mixValue, Type::STRING),
+                'Table' => $this->strTable = Type::cast($mixValue, Type::STRING),
+                'Column' => $this->strColumn = Type::cast($mixValue, Type::STRING),
+                'PropertyName' => $this->strPropertyName = Type::cast($mixValue, Type::STRING),
+                'VariableName' => $this->strVariableName = Type::cast($mixValue, Type::STRING),
+                'VariableType' => $this->strVariableType = Type::cast($mixValue, Type::STRING),
+                'IsType' => $this->blnIsType = Type::cast($mixValue, Type::BOOLEAN),
+                'ReverseReference' => $this->objReverseReference = $mixValue,
+                'Name' => $this->strName = Type::cast($mixValue, Type::STRING),
+                default => parent::__set($strName, $mixValue),
+            };
         } catch (Caller $objExc) {
             $objExc->incrementOffset();
             throw $objExc;

@@ -15,22 +15,33 @@ use QCubed\Query\Builder;
 /**
  * Class None
  * @package QCubed\Query\Condition
- * @was QQConditionNone
  */
 class None extends ConditionBase implements ConditionInterface
 {
     /**
-     * @param $mixParameterArray
-     * @throws Caller
+     * Constructor for the class.
+     *
+     * @param array $mixParameterArray An array of parameters passed to the constructor.
+     *
+     * @return void
+     *
+     * @throws Caller If parameters are passed to the constructor.
      */
-    public function __construct($mixParameterArray)
+    public function __construct(array $mixParameterArray)
     {
         if (count($mixParameterArray)) {
             throw new Caller('None clause takes in no parameters', 3);
         }
     }
 
-    public function updateQueryBuilder(Builder $objBuilder)
+    /**
+     * Updates the query builder by adding a default condition.
+     *
+     * @param Builder $objBuilder The query builder instance to be updated.
+     *
+     * @return void
+     */
+    public function updateQueryBuilder(Builder $objBuilder): void
     {
         $objBuilder->addWhereItem('1=0');
     }

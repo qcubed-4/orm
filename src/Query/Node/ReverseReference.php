@@ -11,6 +11,7 @@ namespace QCubed\Query\Node;
 
 use QCubed\Exception\Caller;
 use QCubed\Query\Builder;
+use QCubed\Query\Clause\Select;
 use QCubed\Query\Condition\ConditionInterface as iCondition;
 use QCubed\Query\Clause;
 
@@ -19,29 +20,31 @@ use QCubed\Query\Clause;
  * Describes a foreign key relationship that links to the primary key in the parent table. Relationship can be unique (one-to-one) or
  * not unique (many-to-one).
  * @package QCubed\Query\Node
- * @was QQReverseReferenceNode
  */
 class ReverseReference extends Table
 {
     /** @var string The name of the foreign key in the linked table. */
-    protected $strForeignKey;
+    protected string $strForeignKey;
 
     /**
-     * Construct the reverse reference.
+     * Constructor for initializing a ReverseReferenceNode.
      *
-     * @param NodeBase $objParentNode
-     * @param null|string $strName
-     * @param null|string $strType
-     * @param null|string $strForeignKey
-     * @param null $strPropertyName If a unique reverse relationship, the name of property that will be used in the model class.
-     * @throws Caller
+     * @param NodeBase $objParentNode The parent node with which this reverse reference node is associated.
+     * @param string $strName The name of the node.
+     * @param string $strType The type of the node.
+     * @param string $strForeignKey The foreign key associated with this reverse reference.
+     * @param string|null $strPropertyName Optional property name for the node.
+     *
+     * @return void
+     *
+     * @throws Caller If the parent node is not provided.
      */
     public function __construct(
         NodeBase $objParentNode,
-        $strName,
-        $strType,
-        $strForeignKey,
-        $strPropertyName = null
+        string $strName,
+        string $strType,
+        string $strForeignKey,
+        ?string $strPropertyName = null
     ) {
         parent::__construct($strName, $strPropertyName, $strType, $objParentNode);
         if (!$objParentNode) {
@@ -52,30 +55,32 @@ class ReverseReference extends Table
     }
 
     /**
-     * Return true if this is a unique reverse relationship.
+     * Determines if the property is unique based on its value.
      *
-     * @return bool
+     * @return bool True if the property value is unique; otherwise, false.
      */
-    public function isUnique()
+    public function isUnique(): bool
     {
         return !empty($this->strPropertyName);
     }
 
     /**
-     * Join a node to the query. Since this is a reverse looking node, conditions control which items are joined.
+     * Join a node to the query. Since this is a reverse-looking node, conditions control which items are joined.
      *
      * @param Builder $objBuilder
      * @param bool $blnExpandSelection
      * @param iCondition|null $objJoinCondition
-     * @param Clause\Select|null $objSelect
+     * @param Select|null $objSelect
+     * @return ReverseReference
      * @throws Caller
      */
     public function join(
-        Builder $objBuilder,
-        $blnExpandSelection = false,
-        ?iCondition $objJoinCondition = null,
+        Builder        $objBuilder,
+        ?bool           $blnExpandSelection = false,
+        ?iCondition    $objJoinCondition = null,
         ?Clause\Select $objSelect = null
-    ) {
+    ): static
+    {
         $objParentNode = $this->objParentNode;
         $objParentNode->join($objBuilder, $blnExpandSelection, null, $objSelect);
         if ($objJoinCondition && !$objJoinCondition->equalTables($this->fullAlias())) {
@@ -96,6 +101,8 @@ class ReverseReference extends Table
             $objExc->incrementOffset();
             throw $objExc;
         }
+
+        return $this;
     }
 
 }

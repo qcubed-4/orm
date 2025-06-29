@@ -9,16 +9,24 @@
 
 namespace QCubed\Database\Mysqli5;
 
+use Exception;
 use QCubed\Database\FieldType;
 
 /**
  * Class Field
  * @package QCubed\Database\Mysqli5
- * @was QMySqli5DatabaseField
  */
 class Field extends MysqliField
 {
-    protected function setFieldType($intMySqlFieldType, $intFlags)
+    /**
+     * Sets the field type based on the provided MySQL field type and flags.
+     *
+     * @param int $intMySqlFieldType The MySQL field type identifier.
+     * @param int $intFlags Flags associated with the MySQL field.
+     * @return void
+     * @throws Exception
+     */
+    protected function setFieldType(int $intMySqlFieldType, int $intFlags): void
     {
         switch ($intMySqlFieldType) {
             case MYSQLI_TYPE_NEWDECIMAL:

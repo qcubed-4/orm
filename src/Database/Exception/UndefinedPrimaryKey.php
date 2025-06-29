@@ -22,7 +22,7 @@ class UndefinedPrimaryKey extends Caller
      * Constructor method
      * @param string $strMessage
      */
-    public function __construct($strMessage)
+    public function __construct(string $strMessage)
     {
         parent::__construct($strMessage, 2);
     }

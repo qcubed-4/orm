@@ -9,38 +9,63 @@
 
 namespace QCubed\Database\Mysqli5;
 
+use Exception;
+use mysqli_result;
 use QCubed\Database\ResultBase;
 
 /**
- * Class to handle results sent by database upon querying
- * @was QMySqliDatabaseResult
+ * Class to handle results sent by a database upon querying
  */
 class MysqliResult extends ResultBase
 {
-    protected $objMySqliResult;
-    protected $objDb;
+    protected ?mysqli_result $objMySqliResult;
+    protected MysqliDatabase $objDb;
 
-    public function __construct(\mysqli_result $objResult, MysqliDatabase $objDb)
+    /**
+     * Constructor method for initializing the object with a MySQLi result set and database connection.
+     *
+     * @param mysqli_result|null $objResult The result set returned from a MySQLi query or null.
+     * @param MysqliDatabase $objDb An instance of the database connection object.
+     * @return void
+     */
+    public function __construct(?mysqli_result $objResult, MysqliDatabase $objDb)
     {
         $this->objMySqliResult = $objResult;
         $this->objDb = $objDb;
     }
 
-    public function fetchArray()
+    /**
+     * Fetches a result row as an associative, numeric array, or both, from the MySQLi result set.
+     *
+     * @return array|null Returns an array representing the fetched row, or null if there are no more rows in the result set.
+     */
+    public function fetchArray(): ?array
     {
         return $this->objMySqliResult->fetch_array();
     }
 
-    public function fetchFields()
+    /**
+     * Fetches all field definitions from the MySQLi result set and converts them into an array of MysqliField objects.
+     *
+     * @return MysqliField[] An array of MysqliField objects representing the fields in the result set.
+     * @throws Exception
+     */
+    public function fetchFields(): array
     {
         $objArrayToReturn = array();
         while ($objField = $this->objMySqliResult->fetch_field()) {
-            array_push($objArrayToReturn, new MysqliField($objField, $this->objDb));
+            $objArrayToReturn[] = new MysqliField($objField, $this->objDb);
         }
         return $objArrayToReturn;
     }
 
-    public function fetchField()
+    /**
+     * Fetches the next field information from the MySQLi result object.
+     *
+     * @return MysqliField|null Returns an instance of MysqliField if a field is available, or null if no more fields are available.
+     * @throws Exception
+     */
+    public function fetchField(): ?MysqliField
     {
         if ($objField = $this->objMySqliResult->fetch_field()) {
             return new MysqliField($objField, $this->objDb);
@@ -48,32 +73,62 @@ class MysqliResult extends ResultBase
         return null;
     }
 
-    public function fetchRow()
+    /**
+     * Fetches a single row from the MySQLi result set as a numeric array.
+     *
+     * @return array|null An array of strings representing the fetched row, or null if no more rows are available.
+     */
+    public function fetchRow(): ?array
     {
         return $this->objMySqliResult->fetch_row();
     }
 
-    public function mySqlFetchField()
+    /**
+     * Fetches information about the next field in the result set.
+     *
+     * @return object|false Returns an object containing field definition information, or false if no more fields exist.
+     */
+    public function mySqlFetchField(): object|false
     {
         return $this->objMySqliResult->fetch_field();
     }
 
-    public function countRows()
+    /**
+     * Counts the number of rows in the MySQLi result set.
+     *
+     * @return int The total number of rows in the result set.
+     */
+    public function countRows(): int
     {
         return $this->objMySqliResult->num_rows;
     }
 
-    public function countFields()
+    /**
+     * Retrieves the count of fields in the current MySQLi result set.
+     *
+     * @return int The number of fields in the result set.
+     */
+    public function countFields(): int
     {
         return $this->objMySqliResult->field_count;
     }
 
-    public function close()
+    /**
+     * Closes the MySQLi result set and frees up the associated resources.
+     *
+     * @return void
+     */
+    public function close(): void
     {
         $this->objMySqliResult->free();
     }
 
-    public function getNextRow()
+    /**
+     * Retrieves the next row from the result set as an instance of MysqliRow or null if no rows are available.
+     *
+     * @return MysqliRow|null Returns an instance of MysqliRow representing the next row in the result set, or null if no rows are available.
+     */
+    public function getNextRow(): ?MysqliRow
     {
         $strColumnArray = $this->fetchArray();
 
@@ -84,13 +139,17 @@ class MysqliResult extends ResultBase
         }
     }
 
-    public function getRows()
+    /**
+     * Retrieves all rows from the result set and returns them as an array.
+     *
+     * @return array An array containing all rows from the result set. Each element of the array represents a row.
+     */
+    public function getRows(): array
     {
         $objDbRowArray = array();
         while ($objDbRow = $this->getNextRow()) {
-            array_push($objDbRowArray, $objDbRow);
+            $objDbRowArray[] = $objDbRow;
         }
         return $objDbRowArray;
     }
 }
-
