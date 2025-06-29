@@ -14,18 +14,18 @@ $_TEMPLATE_SETTINGS = array(
 require(QCUBED_PROJECT_MODEL_GEN_DIR . '/<?= $objTable->ClassName ?>Gen.php');
 
 /**
- * The <?= $objTable->ClassName ?> class defined here contains any
- * customized code for the <?= $objTable->ClassName ?> class in the
- * Object Relational Model.  It represents the "<?= $objTable->Name ?>" table
- * in the database, and extends from the code generated abstract <?= $objTable->ClassName ?>Gen
- * class, which contains all the basic CRUD-type functionality as well as
- * basic methods to handle relationships and index-based loading.
- *
- * @package <?= \QCubed\Project\Codegen\CodegenBase::$ApplicationName; ?>
+* The <?= $objTable->ClassName ?> class defined here contains any
+* customized code for the <?= $objTable->ClassName ?> class in the
+* Object Relational Model. It represents the "<?= $objTable->Name ?>" table
+* in the database and extends from the code generated abstract <?= $objTable->ClassName ?>Gen
+* class, which contains all the basic CRUD-type functionality as well as
+* basic methods to handle relationships and index-based loading.
+*
+* @package <?= \QCubed\Project\Codegen\CodegenBase::$ApplicationName; ?>
 
- * @subpackage Model
- *
- */
+* @subpackage Model
+*
+*/
 class <?= $objTable->ClassName ?> extends <?= $objTable->ClassName ?>Gen
 {
     /**
@@ -43,9 +43,9 @@ class <?= $objTable->ClassName ?> extends <?= $objTable->ClassName ?>Gen
     // NOTE: Remember that when introducing a new custom function,
     // you must specify types for the function parameters as well as for the function return type!
 
-    <?php include("example_load_methods.tpl.php"); ?>
+<?php include("example_load_methods.tpl.php"); ?>
 
-    <?php include("example_properties.tpl.php"); ?>
+<?php include("example_properties.tpl.php"); ?>
 
-    <?php include("example_initialization.tpl.php"); ?>
+<?php include("example_initialization.tpl.php"); ?>
 }
