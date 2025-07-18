@@ -153,8 +153,10 @@ trait ModelTrait
      * Uses BuildQueryStatement to perform most of the work and retrieve the first result from the query.
      *
      * @param iCondition $objConditions any conditions for the query
-     * @param iClause|null $objOptionalClauses additional optional iClause objects or array of clauses for the query
+     * @param mixed|null $objOptionalClauses Optional clauses that modify the query, such as sorting or expansion.
+     *                                       These can be iClause instances, an array of iClause objects, or null.
      * @param array|null $mixParameterArray an array of name-value pairs for parameterized queries
+     *
      * @return mixed the single object from the query or null if no object is found
      * @throws Caller
      */
