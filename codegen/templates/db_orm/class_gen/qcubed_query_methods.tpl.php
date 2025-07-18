@@ -10,12 +10,12 @@ use QCubed\Codegen\SqlTable;
     * Static Qcubed Query method to query for a single <?= $objTable->ClassName ?> object.
     * Offloads work to QModelTrait.trait.php
     * @param iCondition $objConditions any conditions on the query, itself
-    * @param iClause|null $objOptionalClauses additional optional iClause objects for this query
+    * @param mixed $objOptionalClauses additional optional mixed objects for this query
     * @param array|null $mixParameterArray an array of name-value pairs to perform PrepareStatement with
     * @return <?= $objTable->ClassName ?>|null the queried object
     * @throws Caller
     */
-    public static function querySingle(iCondition $objConditions, ?iClause $objOptionalClauses = null, ?array $mixParameterArray = null): ?<?= $objTable->ClassName ?>
+    public static function querySingle(iCondition $objConditions, mixed $objOptionalClauses = null, ?array $mixParameterArray = null): ?<?= $objTable->ClassName ?>
     {
         return static::_QuerySingle($objConditions, $objOptionalClauses, $mixParameterArray);
     }

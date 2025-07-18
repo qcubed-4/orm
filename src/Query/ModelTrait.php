@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace QCubed\Query;
 
-use InvalidArgumentException;
 use QCubed\Cache\LocalMemoryCache;
 use QCubed\Database\DatabaseBase;
 use QCubed\Database\ResultBase;
@@ -162,7 +161,7 @@ trait ModelTrait
      */
     protected static function _QuerySingle(
         iCondition      $objConditions,
-        ?iClause        $objOptionalClauses = null,
+        mixed           $objOptionalClauses = null,
         ?array          $mixParameterArray = null
     ): mixed
     {

@@ -35,6 +35,7 @@ use QCubed\Codegen\SqlTable;
     * @throws InvalidCast
     */
     public static function load(?int <?= $objCodeGen->ParameterListFromColumnArray($objTable->PrimaryKeyColumnArray); ?>, ?iClause $objOptionalClauses = null): ?<?= $objTable->ClassName ?>
+
     {
         if (!$objOptionalClauses) {
 <?php if (count ($objTable->PrimaryKeyColumnArray) == 1) { ?>
