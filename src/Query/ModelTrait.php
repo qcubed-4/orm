@@ -90,7 +90,6 @@ trait ModelTrait
      * @return string The complete SQL query string generated based on the inputs.
      * @throws Caller If there are unresolved named parameters in the query or other invalid input scenarios.
      */
-
     protected static function buildQueryStatement(
         ?Builder    &$objQueryBuilder,
         iCondition  $objConditions,
