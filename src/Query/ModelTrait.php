@@ -211,14 +211,15 @@ trait ModelTrait
     }
 
     /**
-     * Performs a query for an array of objects based on the specified conditions, clauses, and parameters.
-     * Uses BuildQueryStatement to construct the query and instantiateDbResult to return the result.
+     * Executes a query to retrieve an array of results from the database based on the provided conditions and optional clauses.
      *
-     * @param mixed $objConditions the conditions to filter the query
-     * @param array|iClause|null $objOptionalClauses additional optional iClause object(s) or an array of clauses for this query
-     * @param array|null $mixParameterArray an optional associative array of name-value pairs for parameterized queries
-     * @return array an array of instantiated objects resulting from the query
-     * @throws Caller if the query statement construction or execution encounters an issue
+     * @param iCondition $objConditions The conditions used to filter the query results.
+     * @param mixed|null $objOptionalClauses Optional clauses that modify the query, such as sorting or grouping.
+     *                                       These can be iClause instances, an array of iClause objects, or null.
+     * @param array|null $mixParameterArray An optional array of parameters to bind to the query, or null.
+     *
+     * @return array An array of results based on the executed query.
+     * @throws Caller If an error occurs while building the query statement.
      */
     protected static function _QueryArray(
         iCondition      $objConditions,
