@@ -55,12 +55,12 @@ class TypeTable extends ObjectBase
      * This is indexed by an integer which represents the ID in the database, starting with 1
      * @var string[] NameArray
      */
-    protected array $strNameArray;
+    protected array $strNameArray = [];
 
     /**
      * Column names for extra properties (beyond the 2 basic columns), if any.
      */
-    protected array $extraFields;
+    protected array $extraFields = [];
 
     /**
      * Array of extra properties. This is a double-array - array of arrays. Example:
@@ -68,14 +68,14 @@ class TypeTable extends ObjectBase
      *      2 => ['col1' => 'valueC', 'col2 => 'valueD'],
      *      3 => ['col1' => 'valueC', 'col2 => 'valueD']
      */
-    protected array $arrExtraPropertyArray;
+    protected array $arrExtraPropertyArray = [];
 
     /**
      * Array of Type Names converted into Tokens (can be used as PHP Constants)
      * This is indexed by an integer which represents the ID in the database, starting with 1
      * @var string[] TokenArray
      */
-    protected array $strTokenArray;
+    protected array $strTokenArray = [];
 
     /**
      * @var string|array|callable|null $objKeyColumn
