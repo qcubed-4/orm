@@ -20,7 +20,7 @@
 <?php
     $objAssociatedTable = $objCodeGen->GetTable($objReference->AssociatedTable);
     $varPrefix = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? '_int' : '_obj');
-    $varType = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? 'integer' : $objReference->VariableType);
+    $varType = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? 'int' : $objReference->VariableType);
 ?>
             case '<?= $objReference->ObjectDescription ?>':
             case '_<?= $objReference->ObjectDescription ?>': // for backwards compatibility

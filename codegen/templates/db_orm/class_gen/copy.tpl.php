@@ -1,3 +1,8 @@
+<?php
+
+    use QCubed\Codegen\TypeTable;
+
+?>
 /**
     * Creates a copy of the current object, resetting certain properties to ensure
     * it is treated as a new instance when saved.
@@ -50,7 +55,7 @@
 <?php foreach ($objTable->ManyToManyReferenceArray as $objReference) { ?>
 <?php
         $objAssociatedTable = $objCodeGen->GetTable($objReference->AssociatedTable);
-        $varPrefix = (is_a($objAssociatedTable, \QCubed\Codegen\TypeTable::class) ? '_int' : '_obj');
+        $varPrefix = (is_a($objAssociatedTable, TypeTable::class) ? '_int' : '_obj');
 ?>
         $objCopy-><?= $varPrefix . $objReference->ObjectDescription ?> = null;
         $objCopy-><?= $varPrefix . $objReference->ObjectDescription ?>Array = null;

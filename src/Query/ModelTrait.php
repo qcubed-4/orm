@@ -149,16 +149,15 @@ trait ModelTrait
     }
 
     /**
-     * Static QCubed Query method to query for a single object.
-     * Uses BuildQueryStatement to perform most of the work and retrieve the first result from the query.
+     * Executes a query to retrieve a single object based on the provided conditions and optional clauses.
      *
-     * @param iCondition $objConditions any conditions for the query
+     * @param iCondition $objConditions The conditions used to filter the query results.
      * @param mixed|null $objOptionalClauses Optional clauses that modify the query, such as sorting or expansion.
      *                                       These can be iClause instances, an array of iClause objects, or null.
-     * @param array|null $mixParameterArray an array of name-value pairs for parameterized queries
+     * @param array|null $mixParameterArray An optional array of parameters to bind to the query, or null.
      *
-     * @return mixed the single object from the query or null if no object is found
-     * @throws Caller
+     * @return mixed The instantiated object matching the query conditions, or null if no matching object is found.
+     * @throws Caller If there is an issue building or executing the query.
      */
     protected static function _QuerySingle(
         iCondition      $objConditions,

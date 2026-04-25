@@ -3,7 +3,9 @@
 
 /** @var DatabaseCodeGen $objCodeGen */
 
-global $_TEMPLATE_SETTINGS;
+    use QCubed\Project\Codegen\CodegenBase;
+    global $_TEMPLATE_SETTINGS;
+
 $_TEMPLATE_SETTINGS = array(
     'OverwriteFlag' => true,
     'DirectorySuffix' => '',
@@ -54,7 +56,7 @@ use QCubed\QDateTime;
  * overriding existing or implementing new methods, properties and variables
  * in the <?= $objTable->ClassName ?> class.
  *
- * @package <?= \QCubed\Project\Codegen\CodegenBase::$ApplicationName; ?>
+ * @package <?= CodegenBase::$ApplicationName; ?>
 
  * @subpackage ModelGen
 <?php include("property_comments.tpl.php"); ?>

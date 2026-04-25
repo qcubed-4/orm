@@ -1,8 +1,9 @@
 <?php
 use QCubed\Codegen\CodegenBase;
 use QCubed\Codegen\SqlTable;
+    use QCubed\Type;
 
-/** @var SqlTable $objTable */
+    /** @var SqlTable $objTable */
 
 /** @var CodegenBase $objCodeGen */
 
@@ -34,7 +35,7 @@ if ($blnAutoInitialize) {
 	 	else { ?>
         $this-><?= $objColumn->VariableName ?> = <?php
         $defaultVarName = 'self::' . strtoupper($objColumn->Name) . '_DEFAULT';
-        if ($objColumn->VariableType != \QCubed\Type::DATE_TIME)
+        if ($objColumn->VariableType != Type::DATE_TIME)
             print ($defaultVarName);
         else
             print "(" . $defaultVarName . " === null)?null:new QDateTime(" . $defaultVarName . ")";

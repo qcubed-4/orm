@@ -21,7 +21,7 @@ use QCubed\ObjectBase;
  * @property-read string $Table
  * @property-read string $OriginalTable
  * @property-read string $Default
- * @property-read integer $MaxLength
+ * @property-read int $MaxLength
  * @property-read boolean $Identity
  * @property-read boolean $NotNull
  * @property-read boolean $PrimaryKey

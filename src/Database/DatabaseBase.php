@@ -63,7 +63,7 @@ abstract class DatabaseBase extends ObjectBase
     /** @var int Database Index according to the configuration file */
     protected int $intDatabaseIndex;
     /** @var bool Has the profiling been enabled? */
-    protected bool $blnEnableProfiling;
+    protected bool $blnEnableProfiling = false;
     protected array $strProfileArray;
 
     protected array $objConfigArray;

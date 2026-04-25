@@ -11,12 +11,14 @@ namespace QCubed\Database\PostgreSql;
 
 
 
+use QCubed\Database\Exception\ExceptionBase;
+
 /**
  * Database exception class
  *
  * @was QPostgreSqlDatabaseException
  */
-class Exception extends \QCubed\Database\Exception\ExceptionBase
+class Exception extends ExceptionBase
 {
     /**
      * QPostgreSqlDatabaseException constructor.

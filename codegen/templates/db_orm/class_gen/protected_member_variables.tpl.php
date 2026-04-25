@@ -2,7 +2,10 @@
     ////////////////////////////////////////////////////
     // PROTECTED AND PRIVATE MEMBER VARIABLES and CONSTS
     ////////////////////////////////////////////////////
-<?php foreach ($objTable->ColumnArray as $objColumn) { ?>
+<?php use QCubed\Database\FieldType;
+    use QCubed\Type;
+
+    foreach ($objTable->ColumnArray as $objColumn) { ?>
 <?php
     $strConstName = strtoupper($objColumn->Name);	// Produce an uppercase name in the PHP const style
 
@@ -33,7 +36,7 @@
 <?php } else { ?>
     protected ?<?= $displayType  ?> $<?= $objColumn->VariableName ?> = null;
 <?php   } ?>
-<?php if (($objColumn->VariableType == \QCubed\Type::STRING) && (is_numeric($objColumn->Length))) { ?>
+<?php if (($objColumn->VariableType == Type::STRING) && (is_numeric($objColumn->Length))) { ?>
     const <?= $strConstName ?>_MAX_LENGTH = <?= $objColumn->Length ?>;
 <?php } ?>
 
@@ -47,14 +50,14 @@ elseif ($objColumn->Default === 'CURRENT_TIMESTAMP') {
 elseif (strtoupper($objColumn->Default) === 'TRUE' || (
         is_numeric($objColumn->Default) &&
         $objColumn->Default == 1 &&
-        $objColumn->DbType == \QCubed\Database\FieldType::BIT)
+        $objColumn->DbType == FieldType::BIT)
     ) {
     print 'true';
 }
 elseif (strtoupper($objColumn->Default) === 'FALSE' || (
         is_numeric($objColumn->Default) &&
         $objColumn->Default == 0 &&
-        $objColumn->DbType == \QCubed\Database\FieldType::BIT)
+        $objColumn->DbType == FieldType::BIT)
 ) {
     print 'false';
 }
@@ -85,7 +88,7 @@ else {
      * Protected member variable that stores a <?= $objReference->VariableType ?> id,
      * if this <?= $objTable->ClassName ?> object was restored with
      * an expansion on the <?= $objReference->Table ?> association table.
-     * @var integer|null _int<?= $objReference->ObjectDescription ?>;
+     * @var int|null _int<?= $objReference->ObjectDescription ?>;
      */
     protected ?int $_int<?= $objReference->ObjectDescription ?> = null;
 
@@ -93,7 +96,7 @@ else {
      * Protected member variable that stores an array of <?= $objReference->VariableType ?> IDs
      * if this <?= $objTable->ClassName ?> object was restored with
      * an ExpandAsArray on the <?= $objReference->ObjectDescription ?> association table.
-     * @var integer[] _int<?= $objReference->ObjectDescription ?>Array;
+     * @var int[] _int<?= $objReference->ObjectDescription ?>Array;
      */
     protected ?array $_int<?= $objReference->ObjectDescription ?>Array = null;
 

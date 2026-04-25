@@ -1,6 +1,7 @@
 <?php
 
-use QCubed\Project\Codegen\CodegenBase as Codegen;
+    use QCubed\Database\Service;
+    use QCubed\Project\Codegen\CodegenBase as Codegen;
 
 /* This includes library file is used by the codegen.cli and codegen.phpexe scripts
  * to simply fire up and run the CodeGen object, itself.
@@ -29,7 +30,7 @@ function PrintInstructions() {
         exit();
 }
 
-\QCubed\Database\Service::InitializeDatabaseConnections();
+Service::InitializeDatabaseConnections();
 
 $settingsFile = QCUBED_CONFIG_DIR . '/codegen_settings.xml';
 

@@ -1,7 +1,11 @@
 <?php
 	/** @var \QCubed\Codegen\TypeTable $objTypeTable */
 	/** @var \QCubed\Codegen\DatabaseCodeGen $objCodeGen */
-	global $_TEMPLATE_SETTINGS;
+
+    use QCubed\Codegen\TypeTable;
+    use QCubed\Project\Codegen\CodegenBase;
+    global $_TEMPLATE_SETTINGS;
+
 	$_TEMPLATE_SETTINGS = array(
 		'OverwriteFlag' => true,
 		'DirectorySuffix' => '',
@@ -37,7 +41,7 @@ use QCubed\Exception\Caller;
  * overriding existing or implementing new methods, properties and variables
  * in the <?= $objTypeTable->ClassName ?> class.
  *
- * @package <?= \QCubed\Project\Codegen\CodegenBase::$ApplicationName; ?>
+ * @package <?= CodegenBase::$ApplicationName; ?>
 
  * @subpackage Model
  */
@@ -90,7 +94,7 @@ abstract class <?= $objTypeTable->ClassName ?>Gen extends ObjectBase
 <?php foreach ($objTypeTable->ExtraPropertyArray as $intKey=>$arrColumns) { ?>
             <?= $intKey ?> => array (
 <?php 	foreach ($arrColumns as $strColName=>$mixColValue) { ?>
-                '<?= $strColName ?>' => <?= \QCubed\Codegen\TypeTable::literal($mixColValue) ?>,
+                '<?= $strColName ?>' => <?= TypeTable::literal($mixColValue) ?>,
 <?php 	} ?><?php GO_BACK(2); ?>
 
             ),
@@ -105,7 +109,7 @@ abstract class <?= $objTypeTable->ClassName ?>Gen extends ObjectBase
     {
         return array(
 <?php       foreach ($objTypeTable->ExtraPropertyArray as $intKey=>$arrColumns) { ?>
-            '<?= $intKey ?>' => <?= \QCubed\Codegen\TypeTable::literal($arrColumns[$colData['name']]) ?>,
+            '<?= $intKey ?>' => <?= TypeTable::literal($arrColumns[$colData['name']]) ?>,
 <?php       }     ?><?php GO_BACK(2); ?>
 
         );
@@ -117,25 +121,26 @@ abstract class <?= $objTypeTable->ClassName ?>Gen extends ObjectBase
     /**
      * Returns the string corresponding to the given id.
      *
-     * @param integer $int<?= $objTypeTable->ClassName ?>Id
+     * @param int $int<?= $objTypeTable->ClassName ?>Id
      * @return string
      * @throws Caller
      */
     public static function toString(int $int<?= $objTypeTable->ClassName ?>Id): string
     {
-        return match ($int<?= $objTypeTable->ClassName ?>Id) {
-    <?php foreach ($objTypeTable->TokenArray as $intKey=>$strValue) { ?>
-        <?= $intKey ?> => t('<?= $strValue ?>'),
-    <?php } ?>
+        switch ($int<?= $objTypeTable->ClassName ?>Id) {
+<?php foreach ($objTypeTable->NameArray as $intKey=>$strValue) { ?>
+            case <?= $intKey ?>: return t('<?= $strValue ?>');
+<?php } ?>
 
-            default => throw new Caller(sprintf('Invalid intProjectStatusTypeId: %s', $int<?= $objTypeTable->ClassName ?>Id))
-        };
+            default:
+                throw new Caller(sprintf('Invalid int<?= $objTypeTable->ClassName ?>Id: %s', $int<?= $objTypeTable->ClassName ?>Id));
+        }
     }
 
     /**
     * Returns the string corresponding to the given id.
     *
-    * @param integer $int<?= $objTypeTable->ClassName ?>Id
+    * @param int $int<?= $objTypeTable->ClassName ?>Id
     * @return string
     * @throws Caller
     */
@@ -164,7 +169,7 @@ abstract class <?= $objTypeTable->ClassName ?>Gen extends ObjectBase
     <?php
     $valueMap = [];
     foreach ($objTypeTable->ExtraPropertyArray as $intKey => $arrColumns) {
-        $val = \QCubed\Codegen\TypeTable::literal($arrColumns[$colData['name']]);
+        $val = TypeTable::literal($arrColumns[$colData['name']]);
         $valueMap[$val][] = $intKey;
     }
     foreach ($valueMap as $val => $keys) {if (count($keys) === 1) { ?>
@@ -185,7 +190,7 @@ abstract class <?= $objTypeTable->ClassName ?>Gen extends ObjectBase
 
     /**
     * Instantiate a ProjectStatusType from a Database Row.
-    * Simply return the integer id corresponding to this item.
+    * Simply return the int id corresponding to this item.
     * Take in an optional strAliasPrefix, used in case another Object::InstantiateDbRow
     * is calling this ProjectStatusType::InstantiateDbRow in order to perform
     * early binding on referenced objects.

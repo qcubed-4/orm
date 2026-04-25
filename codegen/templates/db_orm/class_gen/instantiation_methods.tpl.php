@@ -1,8 +1,9 @@
 <?php
 use QCubed\Codegen\CodegenBase;
 use QCubed\Codegen\SqlTable;
+    use QCubed\Type;
 
-/** @var SqlTable $objTable */
+    /** @var SqlTable $objTable */
 
 /** @var CodegenBase $objCodeGen */
 
@@ -86,7 +87,7 @@ if ($blnImmediateExpansions || $blnExtendedExpansions) {
             $strAliasName = !empty($strColumnAliasArray[$strAlias]) ? $strColumnAliasArray[$strAlias] : $strAlias;
             if (isset ($strColumnKeys[$strAliasName])) {
                 $mixVal = $strColumns[$strAliasName];
-<?php if ($objColumn->VariableType == \QCubed\Type::BOOLEAN) { ?>
+<?php if ($objColumn->VariableType == Type::BOOLEAN) { ?>
                 $objToReturn-><?= $objColumn->VariableName ?> = $objDbRow->ResolveBooleanValue($mixVal);
 <?php } else { ?>
 <?php 	if ($s = $objCodeGen->getCastString($objColumn)) { ?>

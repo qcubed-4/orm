@@ -1,8 +1,11 @@
 <?php
 	/** @var \QCubed\Codegen\TypeTable $objTypeTable */
 	/** @var \QCubed\Codegen\DatabaseCodeGen $objCodeGen */
-	global $_TEMPLATE_SETTINGS;
-	$_TEMPLATE_SETTINGS = array(
+
+    use QCubed\Project\Codegen\CodegenBase;
+    global $_TEMPLATE_SETTINGS;
+
+    $_TEMPLATE_SETTINGS = array(
 		'OverwriteFlag' => false,
 		'DirectorySuffix' => '',
 		'TargetDirectory' => QCUBED_PROJECT_MODEL_DIR,
@@ -24,7 +27,7 @@ require(QCUBED_PROJECT_MODEL_GEN_DIR . '/<?= $objTypeTable->ClassName ?>Gen.php'
  * Type classes which are generally used to attach a type to a data object.
  * However, they may be used as simple database independent enumerated type.
  *
- * @package <?= \QCubed\Project\Codegen\CodegenBase::$ApplicationName; ?>
+ * @package <?= CodegenBase::$ApplicationName; ?>
 
  * @subpackage DataObjects
  */

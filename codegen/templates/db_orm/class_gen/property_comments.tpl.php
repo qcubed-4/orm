@@ -57,7 +57,7 @@ use QCubed\Codegen\SqlTable;
 <?php 
 	$objAssociatedTable = $objCodeGen->getTable($objReference->AssociatedTable);
     $varPrefix = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? '_int' : '_obj');
-    $varType = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? 'integer' : $objReference->VariableType);
+    $varType = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? 'int' : $objReference->VariableType);
 
 ?>
  * @property-read <?= $varType ?> $_<?= $objReference->ObjectDescription ?> the value of the protected <?= $varPrefix . $objReference->ObjectDescription ?> (Read-Only) if set due to an expansion on the <?= $objReference->Table ?> association table

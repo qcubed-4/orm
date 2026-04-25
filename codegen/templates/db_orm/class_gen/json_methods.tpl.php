@@ -10,7 +10,11 @@
     {
         $iArray = array();
 
-<?php foreach ($objTable->ColumnArray as $objColumn) { ?>
+<?php use QCubed\Database\FieldType;
+    use QCubed\QString;
+    use QCubed\Type;
+
+    foreach ($objTable->ColumnArray as $objColumn) { ?>
         if (isset($this->__blnValid[self::<?= strtoupper($objColumn->Name) ?>_FIELD])) {
             $iArray['<?= $objColumn->PropertyName ?>'] = $this-><?= $objColumn->VariableName ?>;
         }
@@ -65,10 +69,10 @@
         }
 <?php } else { ?>
         if (isset($this->__blnValid[self::<?= strtoupper($objColumn->Name) ?>_FIELD])) {
-<?php if ($objColumn->DbType == \QCubed\Database\FieldType::BLOB) { // binary value ?>
+<?php if ($objColumn->DbType == FieldType::BLOB) { // binary value ?>
             $a['<?= $objColumn->Name ?>'] = base64_encode($this-><?= $objColumn->VariableName ?>);
 <?php       }
-        elseif ($objColumn->VariableType == \QCubed\Type::STRING && QCUBED_ENCODING != 'UTF-8') { ?>
+        elseif ($objColumn->VariableType == Type::STRING && QCUBED_ENCODING != 'UTF-8') { ?>
             $a['<?= $objColumn->Name ?>'] = JavsScriptHelper::MakeJsonEncodable($this-><?= $objColumn->VariableName ?>);
 <?php }
         else {?>
@@ -80,13 +84,13 @@
 <?php foreach ($objTable->ReverseReferenceArray as $objReverseReference) { ?>
 <?php 	if ($objReverseReference->Unique) { ?>
         if (isset($this-><?= $objReverseReference->ObjectMemberVariable ?>)) {
-            $a['<?= \QCubed\QString::UnderscoreFromCamelCase($objReverseReference->ObjectDescription) ?>'] = $this-><?= $objReverseReference->ObjectMemberVariable ?>;
+            $a['<?= QString::UnderscoreFromCamelCase($objReverseReference->ObjectDescription) ?>'] = $this-><?= $objReverseReference->ObjectMemberVariable ?>;
         }
 <?php 	} else { ?>
         if (isset($this->_obj<?= $objReverseReference->ObjectDescription ?>)) {
-            $a['<?= \QCubed\QString::UnderscoreFromCamelCase($objReverseReference->ObjectDescription) ?>'] = $this->_obj<?= $objReverseReference->ObjectDescription ?>;
+            $a['<?= QString::UnderscoreFromCamelCase($objReverseReference->ObjectDescription) ?>'] = $this->_obj<?= $objReverseReference->ObjectDescription ?>;
         } elseif (isset($this->_obj<?= $objReverseReference->ObjectDescription ?>Array)) {
-            $a['<?= \QCubed\QString::UnderscoreFromCamelCase($objReverseReference->ObjectDescription) ?>'] = $this->_obj<?= $objReverseReference->ObjectDescription ?>Array;
+            $a['<?= QString::UnderscoreFromCamelCase($objReverseReference->ObjectDescription) ?>'] = $this->_obj<?= $objReverseReference->ObjectDescription ?>Array;
         }
 <?php 	} ?>
 <?php } ?>
@@ -96,9 +100,9 @@
     $varPrefix = (is_a($objAssociatedTable, '\QCubed\Codegen\TypeTable') ? '_int' : '_obj');
 ?>
         if (isset($this-><?= $varPrefix . $objReference->ObjectDescription ?>)) {
-            $a['<?= \QCubed\QString::UnderscoreFromCamelCase($objReference->ObjectDescription) ?>'] = $this-><?= $varPrefix . $objReference->ObjectDescription ?>;
+            $a['<?= QString::UnderscoreFromCamelCase($objReference->ObjectDescription) ?>'] = $this-><?= $varPrefix . $objReference->ObjectDescription ?>;
         } elseif (isset($this-><?= $varPrefix . $objReference->ObjectDescription ?>Array)) {
-            $a['<?= \QCubed\QString::UnderscoreFromCamelCase($objReference->ObjectDescription) ?>'] = $this-><?= $varPrefix . $objReference->ObjectDescription ?>Array;
+            $a['<?= QString::UnderscoreFromCamelCase($objReference->ObjectDescription) ?>'] = $this-><?= $varPrefix . $objReference->ObjectDescription ?>Array;
         }
 <?php } ?>
         return $a;

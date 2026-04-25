@@ -1,7 +1,10 @@
 <?php
 /** @var SqlTable $objTable */
 /** @var \QCubed\Codegen\DatabaseCodeGen $objCodeGen */
-global $_TEMPLATE_SETTINGS;
+
+    use QCubed\Project\Codegen\CodegenBase;
+    global $_TEMPLATE_SETTINGS;
+
 $_TEMPLATE_SETTINGS = array(
     'OverwriteFlag' => false,
     'DirectorySuffix' => '',
@@ -21,7 +24,7 @@ require(QCUBED_PROJECT_MODEL_GEN_DIR . '/<?= $objTable->ClassName ?>Gen.php');
 * class, which contains all the basic CRUD-type functionality as well as
 * basic methods to handle relationships and index-based loading.
 *
-* @package <?= \QCubed\Project\Codegen\CodegenBase::$ApplicationName; ?>
+* @package <?= CodegenBase::$ApplicationName; ?>
 
 * @subpackage Model
 *

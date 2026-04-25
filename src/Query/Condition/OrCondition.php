@@ -9,7 +9,6 @@
 
 namespace QCubed\Query\Condition;
 
-
 /**
  * Class OrCondition
  * @package QCubed\Query\Condition

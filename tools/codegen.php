@@ -1,6 +1,7 @@
 <?php
 
-use QCubed\Project\Codegen\CodegenBase as Codegen;
+    use QCubed\Database\Service;
+    use QCubed\Project\Codegen\CodegenBase as Codegen;
 use QCubed\QString;
 
 //$__CONFIG_ONLY__ = true;
@@ -30,7 +31,7 @@ $loader = require(dirname($strQCubedPath) . '/autoload.php'); // Add the Compose
 $loader->addPsr4('QCubed\\', $strOrmPath . '/../common/src');
 $loader->addPsr4('QCubed\\', $strOrmPath . '/src');
 
-\QCubed\Database\Service::initializeDatabaseConnections();
+Service::initializeDatabaseConnections();
 
 // Load in the Project classes
 $loader->addPsr4('QCubed\\Project\\', QCUBED_PROJECT_DIR . '/qcubed'); // make sure user side codegen is included

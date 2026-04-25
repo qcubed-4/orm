@@ -1,6 +1,7 @@
 <?php
 use QCubed\Codegen\CodegenBase;
-use QCubed\Codegen\SqlTable;
+    use QCubed\Codegen\DatabaseCodeGen;
+    use QCubed\Codegen\SqlTable;
 
 /** @var SqlTable $objTable */
 
@@ -50,7 +51,7 @@ if (count($objTable->PrimaryKeyColumnArray) == 1) {
     * @param RowBase $objDbRow
     * @param string|null $strAliasPrefix
     * @param string[] $strColumnAliasArray
-    * @return integer|null
+    * @return int|null
     */
     protected static function getRowPrimaryKey(RowBase $objDbRow, ?string $strAliasPrefix, array $strColumnAliasArray): ?string
     {
@@ -67,7 +68,7 @@ if (count($objTable->PrimaryKeyColumnArray) == 1) {
         $strAliasName = !empty($strColumnAliasArray[$strAlias]) ? $strColumnAliasArray[$strAlias] : $strAlias;
         $mixVal = (isset ($strColumns[$strAliasName]) ?? null);
         if ($mixVal === null) return null;
-<?php if ($s = \QCubed\Codegen\DatabaseCodeGen::GetCastString($objPKColumn)) echo $s; ?>
+<?php if ($s = DatabaseCodeGen::GetCastString($objPKColumn)) echo $s; ?>
         $values[] = $mixVal;
 <?php } ?>
 

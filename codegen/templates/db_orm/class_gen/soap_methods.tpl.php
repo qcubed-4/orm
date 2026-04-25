@@ -1,5 +1,10 @@
+<?php
 
-    ///////////////////////////////////////
+    use QCubed\Type;
+
+?>
+
+///////////////////////////////////////
     // METHODS for SOAP-BASED WEB SERVICES
     ///////////////////////////////////////
 
@@ -13,7 +18,7 @@
         $strToReturn = '<complexType name="<?= $objTable->ClassName ?>"><sequence>';
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
 <?php if (!$objColumn->Reference || $objColumn->Reference->IsType) { ?>
-        $strToReturn .= '<element name="<?= $objColumn->PropertyName ?>" type="xsd:<?= \QCubed\Type::SoapType($objColumn->VariableType) ?>"/>';
+        $strToReturn .= '<element name="<?= $objColumn->PropertyName ?>" type="xsd:<?= Type::SoapType($objColumn->VariableType) ?>"/>';
 <?php } ?><?php if ($objColumn->Reference && (!$objColumn->Reference->IsType)) { ?>
         $strToReturn .= '<element name="<?= $objColumn->Reference->PropertyName ?>" type="xsd1:<?= $objColumn->Reference->VariableType ?>"/>';
 <?php } ?>
@@ -70,9 +75,9 @@
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
 <?php if (!$objColumn->Reference || $objColumn->Reference->IsType) { ?>
         if (property_exists($objSoapObject, '<?= $objColumn->PropertyName ?>'))
-<?php if ($objColumn->VariableType != \QCubed\Type::DATE_TIME) { ?>
+<?php if ($objColumn->VariableType != Type::DATE_TIME) { ?>
             $objToReturn-><?= $objColumn->VariableName ?> = $objSoapObject-><?= $objColumn->PropertyName ?>;
-<?php } ?><?php if ($objColumn->VariableType == \QCubed\Type::DATE_TIME) { ?>
+<?php } ?><?php if ($objColumn->VariableType == Type::DATE_TIME) { ?>
             $objToReturn-><?= $objColumn->VariableName ?> = new QDateTime($objSoapObject-><?= $objColumn->PropertyName ?>);
 <?php } ?>
 <?php } ?><?php if ($objColumn->Reference && (!$objColumn->Reference->IsType)) { ?>
@@ -114,7 +119,7 @@
     public static function getSoapObjectFromObject(mixed $objObject, bool $blnBindRelatedObjects): mixed
     {
 <?php foreach ($objTable->ColumnArray as $objColumn) { ?>
-<?php if ($objColumn->VariableType == \QCubed\Type::DATE_TIME) { ?>
+<?php if ($objColumn->VariableType == Type::DATE_TIME) { ?>
         if ($objObject-><?= $objColumn->VariableName ?>)
             $objObject-><?= $objColumn->VariableName ?> = $objObject-><?= $objColumn->VariableName ?>->qFormat(QDateTime::FORMAT_SOAP);
 <?php } ?><?php if ($objColumn->Reference && (!$objColumn->Reference->IsType)) { ?>
