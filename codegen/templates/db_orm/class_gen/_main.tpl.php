@@ -12,9 +12,7 @@ $_TEMPLATE_SETTINGS = array(
     'TargetDirectory' => QCUBED_PROJECT_MODEL_GEN_DIR,
     'TargetFileName' => $objTable->ClassName . 'Gen.php'
 );
-?>
-
-<?php print("<?php\n"); ?>
+?><?php print("<?php\n"); ?>
 /**
  * Generated <?= $objTable->ClassName ?> base class file
  */
